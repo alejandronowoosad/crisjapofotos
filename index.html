@@ -115,6 +115,17 @@
   }
   .nav-link:hover{color:var(--gold);}
 
+  .lang-switch{
+    display:flex; align-items:center; gap:4px; border:1px solid var(--line);
+    border-radius:20px; padding:4px; background:var(--panel-2);
+  }
+  .lang-btn{
+    display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:16px;
+    font-size:0.72rem; font-weight:600; color:var(--grey); transition:all 0.2s;
+  }
+  .lang-btn.active{background:var(--gold); color:var(--black);}
+  .lang-btn .flag{font-size:0.95rem; line-height:1;}
+
   /* ===================== LAYOUT ===================== */
   .page{padding:120px 6vw 100px; max-width:1300px; margin:0 auto; min-height:100vh;}
   .center-page{
@@ -200,7 +211,10 @@
   }
   .photo-slide .frame img{width:100%;height:100%;object-fit:cover;}
   .photo-slide .frame svg{width:34%; opacity:0.35;}
-  .photo-slide .idx{position:absolute; bottom:8px; left:10px; font-size:0.6rem; color:var(--grey); letter-spacing:0.04em;}
+  .photo-slide .idx{
+    position:absolute; bottom:8px; left:10px; right:10px; font-size:0.6rem; color:var(--grey);
+    letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
 
   .fav-toggle{
     position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%;
@@ -401,27 +415,31 @@
 <nav class="nav" id="mainNav">
   <div class="brand">Crisjapo<span class="mark">Fotografías</span></div>
   <div class="nav-right">
-    <span class="nav-user hidden" id="navUserBox">Hola, <strong id="navUserName"></strong></span>
-    <button class="nav-link hidden" id="navLogout">Salir</button>
-    <a href="#" class="nav-link" id="navAdminLink">Admin</a>
+    <div class="lang-switch" id="langSwitch">
+      <button class="lang-btn active" data-lang="es"><span class="flag">🇦🇷</span>ES</button>
+      <button class="lang-btn" data-lang="pt"><span class="flag">🇧🇷</span>PT</button>
+    </div>
+    <span class="nav-user hidden" id="navUserBox"><span data-i18n="navHello">Hola</span>, <strong id="navUserName"></strong></span>
+    <button class="nav-link hidden" id="navLogout" data-i18n="navLogout">Salir</button>
+    <a href="#" class="nav-link" id="navAdminLink" data-i18n="navAdmin">Admin</a>
   </div>
 </nav>
 
 <!-- ============ PANTALLA: LOGIN CLIENTE ============ -->
 <div class="center-page" id="screenClientLogin">
   <div class="auth-card">
-    <span class="eyebrow">Bienvenida</span>
-    <h1>Mirá tus fotos</h1>
-    <p class="sub">Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.</p>
+    <span class="eyebrow" data-i18n="loginEyebrow">Bienvenida</span>
+    <h1 data-i18n="loginTitle">Mirá tus fotos</h1>
+    <p class="sub" data-i18n="loginSub">Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.</p>
     <div class="field">
-      <label for="clientName">Nombre y apellido</label>
-      <input type="text" id="clientName" placeholder="Ej: María Pérez">
+      <label for="clientName" data-i18n="loginNameLabel">Nombre y apellido</label>
+      <input type="text" id="clientName" placeholder="Ej: María Pérez" data-i18n-placeholder="loginNamePh">
     </div>
     <div class="field">
-      <label for="clientEmail">Email</label>
+      <label for="clientEmail" data-i18n="loginEmailLabel">Email</label>
       <input type="email" id="clientEmail" placeholder="tu@email.com">
     </div>
-    <button class="btn btn-gold" id="btnClientLogin">Entrar a la galería</button>
+    <button class="btn btn-gold" id="btnClientLogin" data-i18n="loginBtn">Entrar a la galería</button>
     <p class="form-error" id="clientLoginError"></p>
   </div>
 </div>
@@ -429,19 +447,19 @@
 <!-- ============ PANTALLA: GALERÍA CLIENTE (lista carpetas) ============ -->
 <div class="page hidden" id="screenGallery">
   <div class="section-head">
-    <p class="eyebrow">Catálogo</p>
-    <h2>Tus álbumes</h2>
-    <p>Elegí un día para ver las fotos. Marcá las que más te gusten con el corazón dorado.</p>
+    <p class="eyebrow" data-i18n="galleryEyebrow">Catálogo</p>
+    <h2 data-i18n="galleryTitle">Tus álbumes</h2>
+    <p data-i18n="gallerySub">Elegí un día para ver las fotos. Marcá las que más te gusten con el corazón dorado.</p>
   </div>
   <div class="albums-grid" id="clientFoldersGrid"></div>
 </div>
 
 <!-- ============ PANTALLA: FOTOS DE UNA CARPETA (cliente) ============ -->
 <div class="page hidden" id="screenClientPhotos">
-  <button class="back-link" id="backToGallery">← Volver a álbumes</button>
+  <button class="back-link" id="backToGallery" data-i18n="backToAlbums">← Volver a álbumes</button>
   <p class="eyebrow" id="clientPhotosEyebrow">Álbum</p>
   <h2 id="clientPhotosTitle" style="font-size:clamp(1.7rem,4vw,2.4rem); margin-top:8px;"></h2>
-  <p style="color:var(--grey); margin-top:10px;">Tocá el corazón en las fotos que quieras agregar a tu selección.</p>
+  <p style="color:var(--grey); margin-top:10px;" data-i18n="photosHint">Tocá el corazón en las fotos que quieras agregar a tu selección.</p>
   <div class="photo-grid" id="clientPhotoGrid"></div>
 </div>
 
@@ -546,15 +564,15 @@
 <div class="drawer" id="drawer">
   <div class="drawer-head">
     <div>
-      <h3>Tu selección</h3>
-      <p>Las fotos que elegiste, de todos los álbumes.</p>
+      <h3 data-i18n="drawerTitle">Tu selección</h3>
+      <p data-i18n="drawerSub">Las fotos que elegiste, de todos los álbumes.</p>
     </div>
     <button class="drawer-close" id="drawerClose" aria-label="Cerrar">×</button>
   </div>
   <div class="drawer-list" id="drawerList"></div>
   <div class="drawer-foot">
-    <button class="btn btn-gold" id="sendWhatsapp">Enviar por WhatsApp</button>
-    <small>Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.</small>
+    <button class="btn btn-gold" id="sendWhatsapp" data-i18n="drawerSend">Enviar por WhatsApp</button>
+    <small data-i18n="drawerSendHint">Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.</small>
   </div>
 </div>
 
@@ -622,11 +640,125 @@ let lightboxIndex = 0;
 /* =========================================================
    UTILIDADES UI
 ========================================================= */
+/* =========================================================
+   IDIOMA (ES / PT) — traducción simple de la vista cliente.
+   El panel de administrador queda siempre en español.
+========================================================= */
+const TRANSLATIONS = {
+  es: {
+    navHello: "Hola",
+    navLogout: "Salir",
+    navAdmin: "Admin",
+    loginEyebrow: "Bienvenida",
+    loginTitle: "Mirá tus fotos",
+    loginSub: "Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.",
+    loginNameLabel: "Nombre y apellido",
+    loginNamePh: "Ej: María Pérez",
+    loginEmailLabel: "Email",
+    loginBtn: "Entrar a la galería",
+    galleryEyebrow: "Catálogo",
+    galleryTitle: "Tus álbumes",
+    gallerySub: "Elegí un día para ver las fotos. Marcá las que más te gusten con el corazón dorado.",
+    backToAlbums: "← Volver a álbumes",
+    photosHint: "Tocá el corazón en las fotos que quieras agregar a tu selección.",
+    drawerTitle: "Tu selección",
+    drawerSub: "Las fotos que elegiste, de todos los álbumes.",
+    drawerSend: "Enviar por WhatsApp",
+    drawerSendHint: "Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.",
+    drawerEmpty: "Todavía no marcaste ninguna foto.<br>Entrá a un álbum y tocá el corazón en las que más te gusten.",
+    favAddedToSelection: "En tu selección",
+    favAddToSelection: "Agregar a selección",
+    noAlbumsYet: "Todavía no hay álbumes cargados. Volvé pronto.",
+    loadingAlbums: "Cargando álbumes...",
+    loadingPhotos: "Cargando fotos...",
+    noPhotosYet: "Este álbum todavía no tiene fotos.",
+    photosCount: "fotos",
+    toastNoSelection: "Todavía no elegiste ninguna foto.",
+    loginErrFields: "Completá tu nombre y email para continuar.",
+    loginErrEmail: "Ingresá un email válido."
+  },
+  pt: {
+    navHello: "Olá",
+    navLogout: "Saír",
+    navAdmin: "Admin",
+    loginEyebrow: "Bem-vinda",
+    loginTitle: "Veja suas fotos",
+    loginSub: "Digite seu nome e email para ver as pastas disponíveis e escolher suas fotos favoritas.",
+    loginNameLabel: "Nome completo",
+    loginNamePh: "Ex: María Pérez",
+    loginEmailLabel: "Email",
+    loginBtn: "Entrar na galeria",
+    galleryEyebrow: "Catálogo",
+    galleryTitle: "Seus álbuns",
+    gallerySub: "Escolha um dia para ver as fotos. Marque as que você mais gostar com o coração dourado.",
+    backToAlbums: "← Voltar aos álbuns",
+    photosHint: "Toque no coração nas fotos que quiser adicionar à sua seleção.",
+    drawerTitle: "Sua seleção",
+    drawerSub: "As fotos que você escolheu, de todos os álbuns.",
+    drawerSend: "Enviar pelo WhatsApp",
+    drawerSendHint: "O WhatsApp abre com a lista de fotos. A compra é combinada por mensagem.",
+    drawerEmpty: "Você ainda não marcou nenhuma foto.<br>Entre em um álbum e toque no coração nas que mais gostar.",
+    favAddedToSelection: "Na sua seleção",
+    favAddToSelection: "Adicionar à seleção",
+    noAlbumsYet: "Ainda não há álbuns disponíveis. Volte em breve.",
+    loadingAlbums: "Carregando álbuns...",
+    loadingPhotos: "Carregando fotos...",
+    noPhotosYet: "Este álbum ainda não tem fotos.",
+    photosCount: "fotos",
+    toastNoSelection: "Você ainda não escolheu nenhuma foto.",
+    loginErrFields: "Preencha seu nome e email para continuar.",
+    loginErrEmail: "Digite um email válido."
+  }
+};
+
+let currentLang = 'es';
+
+function t(key){
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.es[key] || key;
+}
+
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+  });
+  // re-renderizar partes dinámicas que dependen del idioma
+  renderDrawer();
+  if(!document.getElementById('screenGallery').classList.contains('hidden')){
+    loadFoldersForClient();
+  }
+}
+
+function setLanguage(lang){
+  currentLang = lang;
+  try{ sessionStorage.setItem('crisjapo_lang', lang); }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  applyTranslations();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+
+(function initLang(){
+  try{
+    const saved = sessionStorage.getItem('crisjapo_lang');
+    if(saved) currentLang = saved;
+  }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+})();
+
 function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=> t.classList.remove('show'), 2600);
+  const toastEl = document.getElementById('toast');
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), 2600);
 }
 
 function showScreen(id){
@@ -673,12 +805,12 @@ document.getElementById('btnClientLogin').addEventListener('click', async () => 
   const errEl = document.getElementById('clientLoginError');
 
   if(!name || !email){
-    errEl.textContent = "Completá tu nombre y email para continuar.";
+    errEl.textContent = t('loginErrFields');
     errEl.style.display = "block";
     return;
   }
   if(!email.includes('@') || !email.includes('.')){
-    errEl.textContent = "Ingresá un email válido.";
+    errEl.textContent = t('loginErrEmail');
     errEl.style.display = "block";
     return;
   }
@@ -724,13 +856,13 @@ document.getElementById('navLogout').addEventListener('click', () => {
 ========================================================= */
 async function loadFoldersForClient(){
   const grid = document.getElementById('clientFoldersGrid');
-  grid.innerHTML = `<div class="empty-state">Cargando álbumes...</div>`;
+  grid.innerHTML = `<div class="empty-state">${t('loadingAlbums')}</div>`;
 
   const snap = await db.collection('folders').orderBy('date', 'desc').get();
   folders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   if(folders.length === 0){
-    grid.innerHTML = `<div class="empty-state">Todavía no hay álbumes cargados. Volvé pronto.</div>`;
+    grid.innerHTML = `<div class="empty-state">${t('noAlbumsYet')}</div>`;
     return;
   }
 
@@ -749,7 +881,7 @@ async function loadFoldersForClient(){
       <span class="album-info">
         <span class="eyebrow">${fmtDate(f.date)}</span>
         <h3>${f.name}</h3>
-        <span class="count">${counts[f.id] || 0} fotos</span>
+        <span class="count">${counts[f.id] || 0} ${t('photosCount')}</span>
       </span>
     </button>
   `).join('');
@@ -769,13 +901,13 @@ async function openClientFolder(folderId){
   document.getElementById('clientPhotosTitle').textContent = folder.name;
 
   const grid = document.getElementById('clientPhotoGrid');
-  grid.innerHTML = `<p style="color:var(--grey);">Cargando fotos...</p>`;
+  grid.innerHTML = `<p style="color:var(--grey);">${t('loadingPhotos')}</p>`;
 
   const snap = await db.collection('folders').doc(folderId).collection('photos').orderBy('createdAt','asc').get();
   const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   if(photos.length === 0){
-    grid.innerHTML = `<p style="color:var(--grey);">Este álbum todavía no tiene fotos.</p>`;
+    grid.innerHTML = `<p style="color:var(--grey);">${t('noPhotosYet')}</p>`;
   } else {
     grid.innerHTML = photos.map((p, i) => {
       const isFav = favorites.some(fv => fv.photoId === p.id);
@@ -833,7 +965,7 @@ function renderDrawer(){
   const list = document.getElementById('drawerList');
 
   if(favorites.length === 0){
-    list.innerHTML = `<p class="drawer-empty">Todavía no marcaste ninguna foto.<br>Entrá a un álbum y tocá el corazón en las que más te gusten.</p>`;
+    list.innerHTML = `<p class="drawer-empty">${t('drawerEmpty')}</p>`;
     return;
   }
 
@@ -897,7 +1029,7 @@ function renderLightbox(){
 
   const isFav = favorites.some(f => f.photoId === photo.id);
   lightboxFavBtn.classList.toggle('active', isFav);
-  lightboxFavLabel.textContent = isFav ? "En tu selección" : "Agregar a selección";
+  lightboxFavLabel.textContent = isFav ? t('favAddedToSelection') : t('favAddToSelection');
 
   document.getElementById('lightboxPrev').style.visibility = lightboxIndex === 0 ? 'hidden' : 'visible';
   document.getElementById('lightboxNext').style.visibility = lightboxIndex === currentClientPhotos.length - 1 ? 'hidden' : 'visible';
@@ -937,7 +1069,7 @@ document.addEventListener('keydown', (e) => {
 
 document.getElementById('sendWhatsapp').addEventListener('click', async () => {
   if(favorites.length === 0){
-    showToast("Todavía no elegiste ninguna foto.");
+    showToast(t('toastNoSelection'));
     return;
   }
 
@@ -1106,16 +1238,18 @@ async function openAdminFolderPhotos(folderId){
     return;
   }
 
-  grid.innerHTML = photos.map((p, i) => `
+  grid.innerHTML = photos.map((p, i) => {
+    const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
+    return `
     <div class="photo-slide">
       <span class="notch"></span>
       <div class="photo-admin-actions">
         <button class="icon-btn" data-delphoto="${p.id}" aria-label="Eliminar foto">${ICON_TRASH}</button>
       </div>
       <div class="frame"><img src="${p.url}" loading="lazy"></div>
-      <span class="idx">${String(i+1).padStart(2,'0')}</span>
-    </div>
-  `).join('');
+      <span class="idx" title="${displayName}">${displayName}</span>
+    </div>`;
+  }).join('');
 
   grid.querySelectorAll('[data-delphoto]').forEach(btn => {
     btn.addEventListener('click', () => deletePhoto(folderId, btn.dataset.delphoto));
@@ -1317,6 +1451,7 @@ async function loadClientsForAdmin(){
    INIT
 ========================================================= */
 (function init(){
+  applyTranslations();
   loadClientSession();
   if(currentClient){
     updateNavForClient();
