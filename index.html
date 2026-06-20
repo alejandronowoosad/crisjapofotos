@@ -343,6 +343,53 @@
     border-top:1px solid var(--line);
   }
 
+  /* ===================== LIGHTBOX ===================== */
+  .lightbox-overlay{
+    position:fixed; inset:0; background:rgba(5,5,5,0.96); z-index:550;
+    display:none; align-items:center; justify-content:center; padding:5vw;
+  }
+  .lightbox-overlay.open{display:flex;}
+  .lightbox-close{
+    position:absolute; top:24px; right:28px; font-size:2rem; color:var(--grey);
+    z-index:560; line-height:1; padding:6px;
+  }
+  .lightbox-close:hover{color:var(--gold);}
+  .lightbox-content{
+    max-width:720px; width:100%; display:flex; flex-direction:column; align-items:center;
+  }
+  .lightbox-frame{
+    position:relative; width:100%; aspect-ratio:1/1; background:var(--panel);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .lightbox-frame img{width:100%; height:100%; object-fit:contain; background:var(--black);}
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px;
+    border-radius:50%; background:rgba(11,11,12,0.6); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:5;
+    transition:all 0.2s;
+  }
+  .lightbox-nav:hover{border-color:var(--gold); background:rgba(11,11,12,0.85);}
+  .lightbox-nav svg{width:20px; height:20px; stroke:var(--bone);}
+  .lightbox-prev{left:14px;}
+  .lightbox-next{right:14px;}
+  .lightbox-meta{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    margin-top:18px; gap:16px; flex-wrap:wrap;
+  }
+  .lightbox-meta .info small{
+    display:block; color:var(--grey); font-size:0.74rem; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .lightbox-meta .info strong{font-size:0.95rem; font-family:'Fraunces', serif; font-weight:500;}
+  .lightbox-fav-btn{
+    display:flex; align-items:center; gap:9px; padding:11px 22px;
+    border:1px solid var(--line); border-radius:var(--radius); font-size:0.76rem;
+    letter-spacing:0.08em; text-transform:uppercase; transition:all 0.2s;
+  }
+  .lightbox-fav-btn svg{width:16px; height:16px; stroke:currentColor; fill:none; transition:all 0.2s;}
+  .lightbox-fav-btn.active{background:var(--gold); border-color:var(--gold); color:var(--black);}
+  .lightbox-fav-btn.active svg{fill:var(--black);}
+
 </style>
 </head>
 <body>
@@ -513,6 +560,32 @@
 
 <footer>© 2026 Crisjapo Fotografías — Bariloche, Argentina</footer>
 
+<!-- ============ LIGHTBOX (vista cliente) ============ -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Cerrar">×</button>
+  <div class="lightbox-content">
+    <div class="lightbox-frame">
+      <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Foto anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <img id="lightboxImg" src="" alt="">
+      <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Foto siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="lightbox-meta">
+      <span class="info">
+        <small id="lightboxFolderName"></small>
+        <strong id="lightboxFileName"></strong>
+      </span>
+      <button class="lightbox-fav-btn" id="lightboxFavBtn">
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
+        <span id="lightboxFavLabel">Agregar a selección</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    CONFIGURACIÓN
@@ -530,7 +603,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const WHATSAPP_PHONE = "542944132588"; // tu número, sin '+' ni espacios
+const WHATSAPP_PHONE = "542944251388"; // tu número, sin '+' ni espacios
 const ADMIN_PASSWORD = "crisjapo2026"; // ⚠️ cambiá esta clave por la tuya
 const WATERMARK_TEXT = "CRISJAPO FOTOGRAFÍAS";
 
@@ -538,10 +611,13 @@ const WATERMARK_TEXT = "CRISJAPO FOTOGRAFÍAS";
    ESTADO GLOBAL
 ========================================================= */
 let currentClient = null;       // { name, email }
-let favorites = [];             // [{ photoId, folderId, folderName, thumb }]
+let favorites = [];             // [{ photoId, folderId, folderName, thumb, fileName }]
 let folders = [];               // cache de álbumes
 let currentFolderId = null;     // álbum abierto (vista cliente o admin)
 let isAdmin = false;
+let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
+let currentClientFolderName = "";
+let lightboxIndex = 0;
 
 /* =========================================================
    UTILIDADES UI
@@ -703,21 +779,32 @@ async function openClientFolder(folderId){
   } else {
     grid.innerHTML = photos.map((p, i) => {
       const isFav = favorites.some(fv => fv.photoId === p.id);
+      const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
       return `
-      <div class="photo-slide">
+      <div class="photo-slide selectable" data-photo-index="${i}">
         <span class="notch"></span>
-        <button class="fav-toggle ${isFav ? 'active':''}" data-photo="${p.id}" data-thumb="${p.url}" aria-label="Marcar favorita">
+        <button class="fav-toggle ${isFav ? 'active':''}" data-photo="${p.id}" data-thumb="${p.url}" data-filename="${displayName}" aria-label="Marcar favorita">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
         </button>
-        <div class="frame"><img src="${p.url}" loading="lazy"></div>
+        <div class="frame" data-open-lightbox="${i}"><img src="${p.url}" loading="lazy"></div>
         <span class="idx">${folder.name.toUpperCase()} · ${String(i+1).padStart(2,'0')}</span>
       </div>`;
     }).join('');
 
+    currentClientPhotos = photos;
+    currentClientFolderName = folder.name;
+
     grid.querySelectorAll('.fav-toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        toggleFavorite(btn.dataset.photo, folderId, folder.name, btn.dataset.thumb);
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(btn.dataset.photo, folderId, folder.name, btn.dataset.thumb, btn.dataset.filename);
         btn.classList.toggle('active');
+      });
+    });
+
+    grid.querySelectorAll('[data-open-lightbox]').forEach(frame => {
+      frame.addEventListener('click', () => {
+        openLightbox(parseInt(frame.dataset.openLightbox, 10));
       });
     });
   }
@@ -730,12 +817,12 @@ document.getElementById('backToGallery').addEventListener('click', () => showScr
 /* =========================================================
    FAVORITOS / CARRITO
 ========================================================= */
-function toggleFavorite(photoId, folderId, folderName, thumb){
+function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
   const exists = favorites.some(f => f.photoId === photoId);
   if(exists){
     favorites = favorites.filter(f => f.photoId !== photoId);
   } else {
-    favorites.push({ photoId, folderId, folderName, thumb });
+    favorites.push({ photoId, folderId, folderName, thumb, fileName: fileName || photoId });
   }
   saveClientSession();
   renderDrawer();
@@ -755,7 +842,7 @@ function renderDrawer(){
       <span class="thumb"><img src="${f.thumb}"></span>
       <span class="meta">
         <strong>${f.folderName}</strong>
-        <small>Foto seleccionada</small>
+        <small>${f.fileName}</small>
       </span>
       <button class="remove" data-remove="${f.photoId}" aria-label="Quitar">×</button>
     </div>
@@ -782,6 +869,72 @@ document.getElementById('drawerClose').addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 function closeDrawer(){ drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
 
+/* =========================================================
+   LIGHTBOX (vista cliente): ver foto grande, navegar con
+   flechas, y marcar/desmarcar favorita desde ahí mismo.
+========================================================= */
+const lightboxOverlay = document.getElementById('lightboxOverlay');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxFolderName = document.getElementById('lightboxFolderName');
+const lightboxFileName = document.getElementById('lightboxFileName');
+const lightboxFavBtn = document.getElementById('lightboxFavBtn');
+const lightboxFavLabel = document.getElementById('lightboxFavLabel');
+
+function openLightbox(index){
+  lightboxIndex = index;
+  renderLightbox();
+  lightboxOverlay.classList.add('open');
+}
+
+function renderLightbox(){
+  const photo = currentClientPhotos[lightboxIndex];
+  if(!photo) return;
+  const displayName = photo.fileName || `foto-${String(lightboxIndex+1).padStart(2,'0')}`;
+
+  lightboxImg.src = photo.url;
+  lightboxFolderName.textContent = currentClientFolderName;
+  lightboxFileName.textContent = displayName;
+
+  const isFav = favorites.some(f => f.photoId === photo.id);
+  lightboxFavBtn.classList.toggle('active', isFav);
+  lightboxFavLabel.textContent = isFav ? "En tu selección" : "Agregar a selección";
+
+  document.getElementById('lightboxPrev').style.visibility = lightboxIndex === 0 ? 'hidden' : 'visible';
+  document.getElementById('lightboxNext').style.visibility = lightboxIndex === currentClientPhotos.length - 1 ? 'hidden' : 'visible';
+}
+
+document.getElementById('lightboxPrev').addEventListener('click', () => {
+  if(lightboxIndex > 0){ lightboxIndex--; renderLightbox(); }
+});
+document.getElementById('lightboxNext').addEventListener('click', () => {
+  if(lightboxIndex < currentClientPhotos.length - 1){ lightboxIndex++; renderLightbox(); }
+});
+document.getElementById('lightboxClose').addEventListener('click', () => {
+  lightboxOverlay.classList.remove('open');
+});
+lightboxOverlay.addEventListener('click', (e) => {
+  if(e.target === lightboxOverlay) lightboxOverlay.classList.remove('open');
+});
+
+lightboxFavBtn.addEventListener('click', () => {
+  const photo = currentClientPhotos[lightboxIndex];
+  if(!photo) return;
+  const displayName = photo.fileName || `foto-${String(lightboxIndex+1).padStart(2,'0')}`;
+  toggleFavorite(photo.id, currentFolderId, currentClientFolderName, photo.url, displayName);
+  renderLightbox();
+  // sincronizar el corazón en la grilla detrás del lightbox
+  const heart = document.querySelector(`.fav-toggle[data-photo="${photo.id}"]`);
+  if(heart) heart.classList.toggle('active');
+});
+
+// Navegación también con teclado (flechas y escape), útil en compu/tablet
+document.addEventListener('keydown', (e) => {
+  if(!lightboxOverlay.classList.contains('open')) return;
+  if(e.key === 'ArrowLeft') document.getElementById('lightboxPrev').click();
+  if(e.key === 'ArrowRight') document.getElementById('lightboxNext').click();
+  if(e.key === 'Escape') lightboxOverlay.classList.remove('open');
+});
+
 document.getElementById('sendWhatsapp').addEventListener('click', async () => {
   if(favorites.length === 0){
     showToast("Todavía no elegiste ninguna foto.");
@@ -791,7 +944,7 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
   const byFolder = {};
   favorites.forEach(f => {
     if(!byFolder[f.folderName]) byFolder[f.folderName] = [];
-    byFolder[f.folderName].push(f.photoId);
+    byFolder[f.folderName].push(f.fileName);
   });
 
   let msg = `Hola Crisjapo! Soy ${currentClient.name} (${currentClient.email}) y quiero estas fotos:\n\n`;
@@ -807,7 +960,7 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
     await db.collection('pedidos').add({
       clientName: currentClient.name,
       clientEmail: currentClient.email,
-      items: favorites.map(f => ({ photoId: f.photoId, folder: f.folderName })),
+      items: favorites.map(f => ({ photoId: f.photoId, folder: f.folderName, fileName: f.fileName })),
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }catch(e){}
@@ -1009,6 +1162,7 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
       const watermarked = await applyWatermark(file);
       await db.collection('folders').doc(folderId).collection('photos').add({
         url: watermarked,
+        fileName: file.name,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }catch(err){
