@@ -146,6 +146,30 @@
   .auth-card .eyebrow{display:block; margin-bottom:10px;}
   .auth-card h1{font-size:1.9rem; margin-bottom:8px;}
   .auth-card .sub{color:var(--grey); font-size:0.88rem; margin-bottom:30px; line-height:1.6;}
+
+  .brand-logo{display:flex; justify-content:center; margin-bottom:22px;}
+  .aperture-icon{width:72px; height:72px; overflow:visible;}
+  .aperture-ring{
+    fill:none; stroke:var(--gold-soft); stroke-width:1.2; opacity:0.55;
+  }
+  .aperture-blades path{
+    fill:none; stroke:var(--gold); stroke-width:1.6; stroke-linejoin:round;
+    opacity:0.85; transform-origin:50px 50px;
+    animation:apertureBreathe 5s ease-in-out infinite;
+  }
+  .aperture-blades path:nth-child(2){animation-delay:-0.4s;}
+  .aperture-blades path:nth-child(3){animation-delay:-0.8s;}
+  .aperture-blades path:nth-child(4){animation-delay:-1.2s;}
+  .aperture-blades path:nth-child(5){animation-delay:-1.6s;}
+  .aperture-blades path:nth-child(6){animation-delay:-2s;}
+  .aperture-core{fill:var(--black); stroke:var(--gold); stroke-width:1;}
+  @keyframes apertureBreathe{
+    0%, 100%{ transform:scale(1); opacity:0.85; }
+    50%{ transform:scale(0.93); opacity:1; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .aperture-blades path{ animation:none; }
+  }
   .field{margin-bottom:16px;}
   .field label{
     display:block; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
@@ -329,6 +353,32 @@
   .status-pill.pending{background:rgba(201,162,75,0.15); color:var(--gold);}
   .status-pill.notified{background:rgba(122,117,104,0.2); color:var(--grey);}
 
+  .combo-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 16px; border:1px solid var(--line); background:var(--black);
+  }
+  .combo-row strong{font-size:0.9rem;}
+  .combo-row small{color:var(--grey); display:block; font-size:0.74rem; margin-top:2px;}
+
+  .price-tag{
+    position:absolute; bottom:8px; right:10px; background:rgba(11,11,12,0.82);
+    border:1px solid var(--gold-soft); color:var(--gold); font-size:0.7rem; font-weight:600;
+    padding:3px 9px; border-radius:12px; z-index:4;
+  }
+
+  .cart-summary{
+    padding:16px 24px; border-top:1px solid var(--line); background:var(--panel-2);
+  }
+  .cart-summary-row{
+    display:flex; justify-content:space-between; align-items:baseline; font-size:0.84rem; color:var(--grey);
+    margin-bottom:6px;
+  }
+  .cart-summary-row.total{
+    font-size:1.1rem; color:var(--bone); font-family:'Fraunces', serif; margin-top:10px;
+  }
+  .cart-summary-row.total strong{color:var(--gold);}
+  .cart-summary-hint{font-size:0.72rem; color:var(--gold-soft); margin-top:8px; line-height:1.5;}
+
   select{
     background:var(--panel-2); border:1px solid var(--line); color:var(--bone);
     padding:13px 16px; font-size:0.92rem; border-radius:var(--radius); width:100%;
@@ -428,7 +478,21 @@
 <!-- ============ PANTALLA: LOGIN CLIENTE ============ -->
 <div class="center-page" id="screenClientLogin">
   <div class="auth-card">
-    <span class="eyebrow" data-i18n="loginEyebrow">Bienvenida</span>
+    <div class="brand-logo">
+      <svg viewBox="0 0 100 100" class="aperture-icon">
+        <circle cx="50" cy="50" r="47" class="aperture-ring"/>
+        <g class="aperture-blades">
+          <path d="M50 50 L50 8 A42 42 0 0 1 86.4 29 Z"/>
+          <path d="M50 50 L86.4 29 A42 42 0 0 1 86.4 71 Z"/>
+          <path d="M50 50 L86.4 71 A42 42 0 0 1 50 92 Z"/>
+          <path d="M50 50 L50 92 A42 42 0 0 1 13.6 71 Z"/>
+          <path d="M50 50 L13.6 71 A42 42 0 0 1 13.6 29 Z"/>
+          <path d="M50 50 L13.6 29 A42 42 0 0 1 50 8 Z"/>
+        </g>
+        <circle cx="50" cy="50" r="14" class="aperture-core"/>
+      </svg>
+    </div>
+    <span class="eyebrow" data-i18n="loginEyebrow">Bienvenida/o</span>
     <h1 data-i18n="loginTitle">Mirá tus fotos</h1>
     <p class="sub" data-i18n="loginSub">Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.</p>
     <div class="field">
@@ -489,6 +553,7 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="tabFolders">Álbumes y fotos</button>
+    <button class="tab-btn" data-tab="tabPricing">Precios</button>
     <button class="tab-btn" data-tab="tabClients">Clientes</button>
   </div>
 
@@ -504,6 +569,14 @@
         <div class="field">
           <label for="newFolderDate">Fecha</label>
           <input type="date" id="newFolderDate">
+        </div>
+        <div class="field">
+          <label for="newFolderCover">Foto de portada (opcional)</label>
+          <label class="upload-zone" id="coverUploadZone" style="padding:18px;">
+            <input type="file" id="newFolderCover" accept="image/*">
+            <strong id="coverUploadLabel" style="font-size:0.85rem;">Tocá para elegir una imagen</strong>
+            <p>Es la foto de referencia que ven los clientes antes de entrar al álbum.</p>
+          </label>
         </div>
         <button class="btn btn-gold" id="btnCreateFolder">Crear álbum</button>
       </div>
@@ -532,6 +605,34 @@
       <button class="back-link" id="closeAdminPhotos">← Cerrar álbum</button>
       <h3 id="adminPhotosTitle"></h3>
       <div class="photo-grid" id="adminPhotoGrid"></div>
+    </div>
+  </div>
+
+  <!-- TAB PRECIOS -->
+  <div class="tab-panel" id="tabPricing">
+    <div class="panel">
+      <h3>Precio individual</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Precio de cada foto suelta, sin combo.
+      </p>
+      <div class="row">
+        <input type="number" id="priceUnit" placeholder="Ej: 3000" min="0" step="1">
+      </div>
+      <button class="btn btn-gold btn-sm" id="btnSavePriceUnit">Guardar precio individual</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h3>Combos por cantidad</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Cuando el cliente elige una cantidad igual o mayor a un combo, se le aplica automáticamente
+        el precio del combo más conveniente. Ej: 5 fotos por $12000 en vez de pagarlas sueltas.
+      </p>
+      <div id="combosList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;"></div>
+      <div class="row">
+        <input type="number" id="newComboQty" placeholder="Cantidad (ej: 5)" min="1" step="1" style="flex:0.5;">
+        <input type="number" id="newComboPrice" placeholder="Precio total del combo (ej: 12000)" min="0" step="1">
+      </div>
+      <button class="btn btn-outline btn-sm" id="btnAddCombo">Agregar combo</button>
     </div>
   </div>
 
@@ -570,6 +671,7 @@
     <button class="drawer-close" id="drawerClose" aria-label="Cerrar">×</button>
   </div>
   <div class="drawer-list" id="drawerList"></div>
+  <div class="cart-summary hidden" id="cartSummary"></div>
   <div class="drawer-foot">
     <button class="btn btn-gold" id="sendWhatsapp" data-i18n="drawerSend">Enviar por WhatsApp</button>
     <small data-i18n="drawerSendHint">Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.</small>
@@ -624,6 +726,7 @@ const db = firebase.firestore();
 const WHATSAPP_PHONE = "542944251388"; // tu número, sin '+' ni espacios
 const ADMIN_PASSWORD = "crisjapo2026"; // ⚠️ cambiá esta clave por la tuya
 const WATERMARK_TEXT = "CRISJAPO FOTOGRAFÍAS";
+const APP_URL = "https://alejandronowoosad.github.io/crisjapofotos/"; // ⚠️ actualizá si cambia tu URL
 
 /* =========================================================
    ESTADO GLOBAL
@@ -636,6 +739,7 @@ let isAdmin = false;
 let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
 let currentClientFolderName = "";
 let lightboxIndex = 0;
+let pricing = { unitPrice: 0, combos: [] }; // se carga desde Firestore
 
 /* =========================================================
    UTILIDADES UI
@@ -649,7 +753,7 @@ const TRANSLATIONS = {
     navHello: "Hola",
     navLogout: "Salir",
     navAdmin: "Admin",
-    loginEyebrow: "Bienvenida",
+    loginEyebrow: "Bienvenida/o",
     loginTitle: "Mirá tus fotos",
     loginSub: "Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.",
     loginNameLabel: "Nombre y apellido",
@@ -681,7 +785,7 @@ const TRANSLATIONS = {
     navHello: "Olá",
     navLogout: "Saír",
     navAdmin: "Admin",
-    loginEyebrow: "Bem-vinda",
+    loginEyebrow: "Bem-vinda/o",
     loginTitle: "Veja suas fotos",
     loginSub: "Digite seu nome e email para ver as pastas disponíveis e escolher suas fotos favoritas.",
     loginNameLabel: "Nome completo",
@@ -733,7 +837,7 @@ function applyTranslations(){
 
 function setLanguage(lang){
   currentLang = lang;
-  try{ sessionStorage.setItem('crisjapo_lang', lang); }catch(e){}
+  try{ localStorage.setItem('crisjapo_lang', lang); }catch(e){}
   document.querySelectorAll('.lang-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.lang === lang);
   });
@@ -746,7 +850,7 @@ document.querySelectorAll('.lang-btn').forEach(btn => {
 
 (function initLang(){
   try{
-    const saved = sessionStorage.getItem('crisjapo_lang');
+    const saved = localStorage.getItem('crisjapo_lang');
     if(saved) currentLang = saved;
   }catch(e){}
   document.querySelectorAll('.lang-btn').forEach(b => {
@@ -777,20 +881,21 @@ function fmtDate(dateStr){
 }
 
 /* =========================================================
-   PERSISTENCIA LOCAL DE SESIÓN (cliente)
-   Guardamos en memoria + sessionStorage para no perder la sesión
-   si recarga la página, pero sin usar localStorage de artifacts.
+   PERSISTENCIA DE SESIÓN (cliente)
+   Usamos localStorage para que el cliente quede recordado
+   en este dispositivo de forma permanente, sin tener que
+   registrarse de nuevo cada vez que entra a la página.
 ========================================================= */
 function saveClientSession(){
   try{
-    sessionStorage.setItem('crisjapo_client', JSON.stringify(currentClient));
-    sessionStorage.setItem('crisjapo_favs', JSON.stringify(favorites));
+    localStorage.setItem('crisjapo_client', JSON.stringify(currentClient));
+    localStorage.setItem('crisjapo_favs', JSON.stringify(favorites));
   }catch(e){}
 }
 function loadClientSession(){
   try{
-    const c = sessionStorage.getItem('crisjapo_client');
-    const f = sessionStorage.getItem('crisjapo_favs');
+    const c = localStorage.getItem('crisjapo_client');
+    const f = localStorage.getItem('crisjapo_favs');
     if(c) currentClient = JSON.parse(c);
     if(f) favorites = JSON.parse(f);
   }catch(e){}
@@ -841,8 +946,8 @@ function updateNavForClient(){
 document.getElementById('navLogout').addEventListener('click', () => {
   currentClient = null;
   favorites = [];
-  sessionStorage.removeItem('crisjapo_client');
-  sessionStorage.removeItem('crisjapo_favs');
+  localStorage.removeItem('crisjapo_client');
+  localStorage.removeItem('crisjapo_favs');
   document.getElementById('navUserBox').classList.add('hidden');
   document.getElementById('navLogout').classList.add('hidden');
   document.getElementById('favLauncher').classList.add('hidden');
@@ -875,7 +980,7 @@ async function loadFoldersForClient(){
 
   grid.innerHTML = folders.map((f, idx) => `
     <button class="album-card" data-folder="${f.id}">
-      <span class="ph">${ICON_CAMERA}</span>
+      <span class="ph">${f.coverUrl ? `<img src="${f.coverUrl}" style="width:100%;height:100%;object-fit:cover;">` : ICON_CAMERA}</span>
       <span class="scrim"></span>
       <span class="album-frame-no">${String(idx+1).padStart(2,"0")} / ${String(folders.length).padStart(2,"0")}</span>
       <span class="album-info">
@@ -918,7 +1023,10 @@ async function openClientFolder(folderId){
         <button class="fav-toggle ${isFav ? 'active':''}" data-photo="${p.id}" data-thumb="${p.url}" data-filename="${displayName}" aria-label="Marcar favorita">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
         </button>
-        <div class="frame" data-open-lightbox="${i}"><img src="${p.url}" loading="lazy"></div>
+        <div class="frame" data-open-lightbox="${i}">
+          <img src="${p.url}" loading="lazy">
+          ${pricing.unitPrice > 0 ? `<span class="price-tag">${fmtMoney(pricing.unitPrice)}</span>` : ''}
+        </div>
         <span class="idx">${folder.name.toUpperCase()} · ${String(i+1).padStart(2,'0')}</span>
       </div>`;
     }).join('');
@@ -949,6 +1057,121 @@ document.getElementById('backToGallery').addEventListener('click', () => showScr
 /* =========================================================
    FAVORITOS / CARRITO
 ========================================================= */
+/* =========================================================
+   PRECIOS Y COMBOS
+   Calcula el total óptimo: prueba de aplicar combos (del más
+   grande al más chico) sobre la cantidad de fotos elegidas,
+   y lo que sobra se cobra a precio individual.
+========================================================= */
+async function loadPricing(){
+  try{
+    const doc = await db.collection('config').doc('pricing').get();
+    if(doc.exists){
+      const data = doc.data();
+      pricing.unitPrice = data.unitPrice || 0;
+      pricing.combos = (data.combos || []).sort((a,b) => b.qty - a.qty);
+    }
+  }catch(e){ console.error(e); }
+}
+
+function calculateCartTotal(qty){
+  if(qty === 0) return { total: 0, breakdown: [] };
+
+  let remaining = qty;
+  const breakdown = [];
+  const sortedCombos = [...pricing.combos].sort((a,b) => b.qty - a.qty);
+
+  for(const combo of sortedCombos){
+    if(combo.qty <= 0) continue;
+    const times = Math.floor(remaining / combo.qty);
+    if(times > 0){
+      breakdown.push({ type: 'combo', qty: combo.qty, times, price: combo.price });
+      remaining -= times * combo.qty;
+    }
+  }
+  if(remaining > 0){
+    breakdown.push({ type: 'unit', qty: remaining, price: pricing.unitPrice });
+  }
+
+  const total = breakdown.reduce((sum, b) => {
+    return sum + (b.type === 'combo' ? b.times * b.price : b.qty * b.price);
+  }, 0);
+
+  return { total, breakdown };
+}
+
+function fmtMoney(n){
+  return `$${Number(n).toLocaleString('es-AR')}`;
+}
+
+function renderPricingAdmin(){
+  document.getElementById('priceUnit').value = pricing.unitPrice || '';
+
+  const list = document.getElementById('combosList');
+  if(pricing.combos.length === 0){
+    list.innerHTML = `<p style="color:var(--grey); font-size:0.85rem;">Todavía no agregaste combos.</p>`;
+    return;
+  }
+
+  const sorted = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+  list.innerHTML = sorted.map(c => `
+    <div class="combo-row">
+      <div>
+        <strong>${c.qty} fotos</strong>
+        <small>${fmtMoney(c.price)} en total (${fmtMoney(Math.round(c.price/c.qty))} c/u)</small>
+      </div>
+      <button class="icon-btn" data-delcombo="${c.qty}" aria-label="Eliminar combo">${ICON_TRASH}</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-delcombo]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const qty = parseInt(btn.dataset.delcombo, 10);
+      pricing.combos = pricing.combos.filter(c => c.qty !== qty);
+      await savePricingToFirestore();
+      renderPricingAdmin();
+      showToast("Combo eliminado.");
+    });
+  });
+}
+
+async function savePricingToFirestore(){
+  await db.collection('config').doc('pricing').set({
+    unitPrice: pricing.unitPrice,
+    combos: pricing.combos
+  });
+}
+
+document.getElementById('btnSavePriceUnit').addEventListener('click', async () => {
+  const val = parseFloat(document.getElementById('priceUnit').value);
+  if(isNaN(val) || val < 0){
+    showToast("Ingresá un precio válido.");
+    return;
+  }
+  pricing.unitPrice = val;
+  await savePricingToFirestore();
+  showToast("Precio individual guardado.");
+});
+
+document.getElementById('btnAddCombo').addEventListener('click', async () => {
+  const qty = parseInt(document.getElementById('newComboQty').value, 10);
+  const price = parseFloat(document.getElementById('newComboPrice').value);
+
+  if(isNaN(qty) || qty <= 0 || isNaN(price) || price < 0){
+    showToast("Completá una cantidad y un precio válidos.");
+    return;
+  }
+
+  pricing.combos = pricing.combos.filter(c => c.qty !== qty); // reemplaza si ya existía esa cantidad
+  pricing.combos.push({ qty, price });
+  await savePricingToFirestore();
+
+  document.getElementById('newComboQty').value = '';
+  document.getElementById('newComboPrice').value = '';
+  renderPricingAdmin();
+  showToast("Combo agregado.");
+});
+
 function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
   const exists = favorites.some(f => f.photoId === photoId);
   if(exists){
@@ -963,9 +1186,11 @@ function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
 function renderDrawer(){
   document.getElementById('favBadge').textContent = favorites.length;
   const list = document.getElementById('drawerList');
+  const summary = document.getElementById('cartSummary');
 
   if(favorites.length === 0){
     list.innerHTML = `<p class="drawer-empty">${t('drawerEmpty')}</p>`;
+    summary.classList.add('hidden');
     return;
   }
 
@@ -990,6 +1215,39 @@ function renderDrawer(){
       if(heart) heart.classList.remove('active');
     });
   });
+
+  renderCartSummary();
+}
+
+function renderCartSummary(){
+  const summary = document.getElementById('cartSummary');
+
+  if(pricing.unitPrice <= 0 && pricing.combos.length === 0){
+    summary.classList.add('hidden');
+    return; // no hay precios configurados, no mostramos nada de plata
+  }
+
+  const { total, breakdown } = calculateCartTotal(favorites.length);
+
+  const lines = breakdown.map(b => {
+    if(b.type === 'combo'){
+      return `<div class="cart-summary-row"><span>${b.times} combo${b.times>1?'s':''} de ${b.qty} fotos</span><span>${fmtMoney(b.times*b.price)}</span></div>`;
+    }
+    return `<div class="cart-summary-row"><span>${b.qty} foto${b.qty>1?'s':''} individual${b.qty>1?'es':''}</span><span>${fmtMoney(b.qty*b.price)}</span></div>`;
+  }).join('');
+
+  // Si existe un combo más grande que la cantidad actual, sugerirlo como ahorro
+  const nextCombo = [...pricing.combos].sort((a,b)=>a.qty-b.qty).find(c => c.qty > favorites.length);
+  const hint = nextCombo
+    ? `Sumá ${nextCombo.qty - favorites.length} foto${(nextCombo.qty-favorites.length)>1?'s':''} más y pagás ${fmtMoney(nextCombo.price)} por las ${nextCombo.qty} (combo).`
+    : '';
+
+  summary.innerHTML = `
+    ${lines}
+    <div class="cart-summary-row total"><span>Total</span><strong>${fmtMoney(total)}</strong></div>
+    ${hint ? `<div class="cart-summary-hint">💡 ${hint}</div>` : ''}
+  `;
+  summary.classList.remove('hidden');
 }
 
 const drawer = document.getElementById('drawer');
@@ -1085,7 +1343,12 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
     ids.forEach(id => msg += `- ${id}\n`);
     msg += `\n`;
   });
+  const { total } = calculateCartTotal(favorites.length);
   msg += `Total: ${favorites.length} foto(s).`;
+  if(total > 0){
+    msg += ` Precio estimado: ${fmtMoney(total)}.`;
+  }
+  msg += `\n\n📷 Galería: ${APP_URL}`;
 
   // Guardar el pedido en Firestore para que quede registro
   try{
@@ -1133,6 +1396,8 @@ document.getElementById('btnAdminLogin').addEventListener('click', async () => {
   document.getElementById('adminPass').value = '';
   await loadFoldersForAdmin();
   await loadClientsForAdmin();
+  await loadPricing();
+  renderPricingAdmin();
   showScreen('screenAdmin');
 });
 
@@ -1154,17 +1419,36 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 document.getElementById('btnCreateFolder').addEventListener('click', async () => {
   const name = document.getElementById('newFolderName').value.trim();
   const date = document.getElementById('newFolderDate').value;
+  const coverFile = document.getElementById('newFolderCover').files[0];
 
   if(!name || !date){
     showToast("Completá el nombre y la fecha del álbum.");
     return;
   }
 
-  await db.collection('folders').add({ name, date, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  const folderData = { name, date, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+
+  if(coverFile){
+    showToast("Creando álbum...");
+    try{
+      folderData.coverUrl = await resizeImageToDataUrl(coverFile, 900);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  await db.collection('folders').add(folderData);
   document.getElementById('newFolderName').value = '';
   document.getElementById('newFolderDate').value = '';
+  document.getElementById('newFolderCover').value = '';
+  document.getElementById('coverUploadLabel').textContent = 'Tocá para elegir una imagen';
   showToast("Álbum creado.");
   await loadFoldersForAdmin();
+});
+
+document.getElementById('newFolderCover').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  document.getElementById('coverUploadLabel').textContent = file ? file.name : 'Tocá para elegir una imagen';
 });
 
 /* =========================================================
@@ -1372,6 +1656,36 @@ function applyWatermark(file){
   });
 }
 
+/* Redimensiona una imagen sin aplicar marca de agua, pensada para
+   fotos de portada de álbum (referencia visual, no para venta). */
+function resizeImageToDataUrl(file, maxSide){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > height && width > maxSide){
+          height = Math.round(height * (maxSide/width));
+          width = maxSide;
+        } else if(height > maxSide){
+          width = Math.round(width * (maxSide/height));
+          height = maxSide;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 /* =========================================================
    ADMIN: CLIENTES DEL DÍA
 ========================================================= */
@@ -1424,7 +1738,7 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-notify]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.`;
+      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
       window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
       await db.collection('clientes').doc(btn.dataset.notify).update({ status: 'notified' });
       await loadClientsForAdmin();
@@ -1433,7 +1747,7 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-remind]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!`;
+      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
       window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
     });
   });
@@ -1450,8 +1764,9 @@ async function loadClientsForAdmin(){
 /* =========================================================
    INIT
 ========================================================= */
-(function init(){
+(async function init(){
   applyTranslations();
+  await loadPricing();
   loadClientSession();
   if(currentClient){
     updateNavForClient();
