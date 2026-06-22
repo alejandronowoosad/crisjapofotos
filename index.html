@@ -148,27 +148,43 @@
   .auth-card .sub{color:var(--grey); font-size:0.88rem; margin-bottom:30px; line-height:1.6;}
 
   .brand-logo{display:flex; justify-content:center; margin-bottom:22px;}
-  .aperture-icon{width:72px; height:72px; overflow:visible;}
-  .aperture-ring{
-    fill:none; stroke:var(--gold-soft); stroke-width:1.2; opacity:0.55;
+  .brand-icon{width:108px; height:108px; overflow:visible;}
+  .brand-icon .bi-ring{
+    fill:none; stroke:var(--gold-soft); stroke-width:1; opacity:0.45;
   }
-  .aperture-blades path{
-    fill:none; stroke:var(--gold); stroke-width:1.6; stroke-linejoin:round;
-    opacity:0.85; transform-origin:50px 50px;
-    animation:apertureBreathe 5s ease-in-out infinite;
+  .brand-icon .bi-mountains{
+    fill:none; stroke:var(--gold-soft); stroke-width:1.4; stroke-linejoin:round; opacity:0.8;
   }
-  .aperture-blades path:nth-child(2){animation-delay:-0.4s;}
-  .aperture-blades path:nth-child(3){animation-delay:-0.8s;}
-  .aperture-blades path:nth-child(4){animation-delay:-1.2s;}
-  .aperture-blades path:nth-child(5){animation-delay:-1.6s;}
-  .aperture-blades path:nth-child(6){animation-delay:-2s;}
-  .aperture-core{fill:var(--black); stroke:var(--gold); stroke-width:1;}
-  @keyframes apertureBreathe{
-    0%, 100%{ transform:scale(1); opacity:0.85; }
-    50%{ transform:scale(0.93); opacity:1; }
+  .brand-icon .bi-peak-snow{
+    fill:var(--gold-soft); opacity:0.5;
+  }
+  .brand-icon .bi-pine{
+    fill:none; stroke:var(--gold); stroke-width:1.3; stroke-linejoin:round;
+  }
+  .brand-icon .bi-camera-body{
+    fill:var(--black); stroke:var(--gold); stroke-width:1.6; stroke-linejoin:round;
+  }
+  .brand-icon .bi-camera-lens{
+    fill:var(--black); stroke:var(--gold); stroke-width:1.4;
+  }
+  .brand-icon .bi-camera-lens-inner{
+    fill:none; stroke:var(--gold-soft); stroke-width:0.8;
+  }
+  .brand-icon .bi-camera-flash{
+    fill:var(--gold);
+  }
+  .brand-icon .bi-shutter{
+    fill:var(--gold); opacity:0.9;
+    transform-origin:54px 64px;
+    animation:shutterBlink 4.5s ease-in-out infinite;
+  }
+  @keyframes shutterBlink{
+    0%, 88%, 100%{ opacity:0.9; transform:scale(1); }
+    92%{ opacity:0.3; transform:scale(0.85); }
+    96%{ opacity:0.9; transform:scale(1); }
   }
   @media (prefers-reduced-motion: reduce){
-    .aperture-blades path{ animation:none; }
+    .brand-icon .bi-shutter{ animation:none; }
   }
   .field{margin-bottom:16px;}
   .field label{
@@ -319,10 +335,18 @@
   .folder-row{
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:14px 16px; border:1px solid var(--line); background:var(--black);
+    flex-wrap:wrap;
   }
   .folder-row .info strong{display:block; font-size:0.92rem;}
   .folder-row .info small{color:var(--grey); font-size:0.76rem;}
   .folder-row .actions{display:flex; gap:8px;}
+  .folder-cover-thumb{
+    width:44px; height:44px; border-radius:4px; overflow:hidden; flex-shrink:0;
+    background:var(--panel-2); display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+  }
+  .folder-cover-thumb img{width:100%; height:100%; object-fit:cover;}
+  .folder-cover-thumb svg{width:55%;}
 
   .upload-zone{
     border:1.5px dashed var(--line); padding:30px 20px; text-align:center; margin-top:10px;
@@ -479,17 +503,43 @@
 <div class="center-page" id="screenClientLogin">
   <div class="auth-card">
     <div class="brand-logo">
-      <svg viewBox="0 0 100 100" class="aperture-icon">
-        <circle cx="50" cy="50" r="47" class="aperture-ring"/>
-        <g class="aperture-blades">
-          <path d="M50 50 L50 8 A42 42 0 0 1 86.4 29 Z"/>
-          <path d="M50 50 L86.4 29 A42 42 0 0 1 86.4 71 Z"/>
-          <path d="M50 50 L86.4 71 A42 42 0 0 1 50 92 Z"/>
-          <path d="M50 50 L50 92 A42 42 0 0 1 13.6 71 Z"/>
-          <path d="M50 50 L13.6 71 A42 42 0 0 1 13.6 29 Z"/>
-          <path d="M50 50 L13.6 29 A42 42 0 0 1 50 8 Z"/>
+      <svg viewBox="0 0 108 108" class="brand-icon">
+        <!-- anillo sutil de fondo -->
+        <circle cx="54" cy="54" r="50" class="bi-ring"/>
+
+        <!-- montaña trasera (más chica, a la derecha) -->
+        <path d="M60 64 L74 38 L88 64 Z" class="bi-mountains"/>
+
+        <!-- montaña principal con nieve, a la izquierda -->
+        <path d="M16 64 L38 24 L60 64 Z" class="bi-mountains"/>
+        <path d="M38 24 L44 34 L33 34 Z" class="bi-peak-snow"/>
+
+        <!-- pino izquierdo -->
+        <g class="bi-pine">
+          <path d="M15 60 L20 49 L25 60 Z"/>
+          <path d="M16.5 53 L20 44 L23.5 53 Z"/>
+          <line x1="20" y1="60" x2="20" y2="64"/>
         </g>
-        <circle cx="50" cy="50" r="14" class="aperture-core"/>
+
+        <!-- pino derecho -->
+        <g class="bi-pine">
+          <path d="M84 62 L89 52 L94 62 Z"/>
+          <path d="M85.5 55.5 L89 47.5 L92.5 55.5 Z"/>
+          <line x1="89" y1="62" x2="89" y2="66"/>
+        </g>
+
+        <!-- línea de base / suelo -->
+        <line x1="12" y1="64" x2="96" y2="64" stroke="var(--gold-soft)" stroke-width="1" opacity="0.5"/>
+
+        <!-- cámara fotográfica, en primer plano -->
+        <g>
+          <rect x="30" y="58" width="48" height="32" rx="4" class="bi-camera-body"/>
+          <rect x="42" y="51" width="14" height="9" rx="2" class="bi-camera-body"/>
+          <rect x="68" y="63" width="7" height="5" rx="1" class="bi-camera-flash"/>
+          <circle cx="54" cy="75" r="14" class="bi-camera-lens"/>
+          <circle cx="54" cy="75" r="9.5" class="bi-camera-lens-inner"/>
+          <circle cx="54" cy="75" r="5.5" class="bi-shutter"/>
+        </g>
       </svg>
     </div>
     <span class="eyebrow" data-i18n="loginEyebrow">Bienvenida/o</span>
@@ -622,17 +672,30 @@
     </div>
 
     <div class="panel" style="margin-top:24px;">
-      <h3>Combos por cantidad</h3>
+      <h3>Combos: "comprás X, llevás Y gratis"</h3>
       <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
-        Cuando el cliente elige una cantidad igual o mayor a un combo, se le aplica automáticamente
-        el precio del combo más conveniente. Ej: 5 fotos por $12000 en vez de pagarlas sueltas.
+        Definí escalones a mano. Ej: comprando 5 fotos, 1 es gratis (paga 4). Comprando 10, 3 son gratis
+        (paga 7). El cliente ve automáticamente el escalón que le conviene según cuántas fotos elija.
       </p>
       <div id="combosList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;"></div>
       <div class="row">
-        <input type="number" id="newComboQty" placeholder="Cantidad (ej: 5)" min="1" step="1" style="flex:0.5;">
-        <input type="number" id="newComboPrice" placeholder="Precio total del combo (ej: 12000)" min="0" step="1">
+        <input type="number" id="newComboQty" placeholder="Comprando (ej: 5)" min="1" step="1">
+        <input type="number" id="newComboFree" placeholder="Gratis (ej: 1)" min="1" step="1">
       </div>
-      <button class="btn btn-outline btn-sm" id="btnAddCombo">Agregar combo</button>
+      <button class="btn btn-outline btn-sm" id="btnAddCombo">Agregar escalón</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h3>Pack completo (a convenir)</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Para clientes que quieren absolutamente todas las fotos. No se calcula un precio automático:
+        se muestra un cartel invitando a consultar por WhatsApp.
+      </p>
+      <div class="field">
+        <label for="fullPackLabel">Texto del cartel</label>
+        <input type="text" id="fullPackLabel" placeholder="Ej: ¿Querés el álbum completo? Consultanos">
+      </div>
+      <button class="btn btn-gold btn-sm" id="btnSaveFullPack">Guardar cartel</button>
     </div>
   </div>
 
@@ -739,7 +802,7 @@ let isAdmin = false;
 let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
 let currentClientFolderName = "";
 let lightboxIndex = 0;
-let pricing = { unitPrice: 0, combos: [] }; // se carga desde Firestore
+let pricing = { unitPrice: 0, combos: [], fullPackLabel: '' }; // se carga desde Firestore
 
 /* =========================================================
    UTILIDADES UI
@@ -1069,35 +1132,39 @@ async function loadPricing(){
     if(doc.exists){
       const data = doc.data();
       pricing.unitPrice = data.unitPrice || 0;
-      pricing.combos = (data.combos || []).sort((a,b) => b.qty - a.qty);
+      pricing.combos = (data.combos || []).sort((a,b) => a.qty - b.qty); // {qty, free}
+      pricing.fullPackLabel = data.fullPackLabel || '';
     }
   }catch(e){ console.error(e); }
 }
 
+/* Calcula el total a pagar para una cantidad de fotos, aplicando
+   el MEJOR escalón "comprás X, llevás Y gratis" que el cliente
+   ya alcanzó con su cantidad actual. El resto de fotos sueltas
+   (las que exceden el escalón) se cobran a precio individual. */
 function calculateCartTotal(qty){
-  if(qty === 0) return { total: 0, breakdown: [] };
+  if(qty === 0) return { total: 0, breakdown: [], appliedCombo: null };
 
-  let remaining = qty;
-  const breakdown = [];
-  const sortedCombos = [...pricing.combos].sort((a,b) => b.qty - a.qty);
+  // El mejor escalón es el de mayor "qty" que sea alcanzable (qty <= cantidad elegida)
+  const eligible = pricing.combos.filter(c => c.qty <= qty).sort((a,b) => b.qty - a.qty);
+  const bestCombo = eligible[0] || null;
 
-  for(const combo of sortedCombos){
-    if(combo.qty <= 0) continue;
-    const times = Math.floor(remaining / combo.qty);
-    if(times > 0){
-      breakdown.push({ type: 'combo', qty: combo.qty, times, price: combo.price });
-      remaining -= times * combo.qty;
-    }
-  }
-  if(remaining > 0){
-    breakdown.push({ type: 'unit', qty: remaining, price: pricing.unitPrice });
+  if(!bestCombo){
+    const total = qty * pricing.unitPrice;
+    return { total, breakdown: [{ type:'unit', qty, price: pricing.unitPrice }], appliedCombo: null };
   }
 
-  const total = breakdown.reduce((sum, b) => {
-    return sum + (b.type === 'combo' ? b.times * b.price : b.qty * b.price);
-  }, 0);
+  const paidInCombo = bestCombo.qty - bestCombo.free;
+  const extra = qty - bestCombo.qty; // fotos sueltas además del escalón
+  const breakdown = [
+    { type:'combo', qty: bestCombo.qty, free: bestCombo.free, paid: paidInCombo, price: pricing.unitPrice }
+  ];
+  if(extra > 0){
+    breakdown.push({ type:'unit', qty: extra, price: pricing.unitPrice });
+  }
 
-  return { total, breakdown };
+  const total = (paidInCombo + extra) * pricing.unitPrice;
+  return { total, breakdown, appliedCombo: bestCombo };
 }
 
 function fmtMoney(n){
@@ -1106,10 +1173,11 @@ function fmtMoney(n){
 
 function renderPricingAdmin(){
   document.getElementById('priceUnit').value = pricing.unitPrice || '';
+  document.getElementById('fullPackLabel').value = pricing.fullPackLabel || '';
 
   const list = document.getElementById('combosList');
   if(pricing.combos.length === 0){
-    list.innerHTML = `<p style="color:var(--grey); font-size:0.85rem;">Todavía no agregaste combos.</p>`;
+    list.innerHTML = `<p style="color:var(--grey); font-size:0.85rem;">Todavía no agregaste escalones.</p>`;
     return;
   }
 
@@ -1117,10 +1185,10 @@ function renderPricingAdmin(){
   list.innerHTML = sorted.map(c => `
     <div class="combo-row">
       <div>
-        <strong>${c.qty} fotos</strong>
-        <small>${fmtMoney(c.price)} en total (${fmtMoney(Math.round(c.price/c.qty))} c/u)</small>
+        <strong>Comprás ${c.qty}, llevás ${c.free} gratis</strong>
+        <small>Pagás ${c.qty - c.free} de ${c.qty}${pricing.unitPrice > 0 ? ` (${fmtMoney((c.qty - c.free) * pricing.unitPrice)})` : ''}</small>
       </div>
-      <button class="icon-btn" data-delcombo="${c.qty}" aria-label="Eliminar combo">${ICON_TRASH}</button>
+      <button class="icon-btn" data-delcombo="${c.qty}" aria-label="Eliminar escalón">${ICON_TRASH}</button>
     </div>
   `).join('');
 
@@ -1130,7 +1198,7 @@ function renderPricingAdmin(){
       pricing.combos = pricing.combos.filter(c => c.qty !== qty);
       await savePricingToFirestore();
       renderPricingAdmin();
-      showToast("Combo eliminado.");
+      showToast("Escalón eliminado.");
     });
   });
 }
@@ -1138,7 +1206,8 @@ function renderPricingAdmin(){
 async function savePricingToFirestore(){
   await db.collection('config').doc('pricing').set({
     unitPrice: pricing.unitPrice,
-    combos: pricing.combos
+    combos: pricing.combos,
+    fullPackLabel: pricing.fullPackLabel || ''
   });
 }
 
@@ -1150,26 +1219,34 @@ document.getElementById('btnSavePriceUnit').addEventListener('click', async () =
   }
   pricing.unitPrice = val;
   await savePricingToFirestore();
+  renderPricingAdmin();
   showToast("Precio individual guardado.");
 });
 
 document.getElementById('btnAddCombo').addEventListener('click', async () => {
   const qty = parseInt(document.getElementById('newComboQty').value, 10);
-  const price = parseFloat(document.getElementById('newComboPrice').value);
+  const free = parseInt(document.getElementById('newComboFree').value, 10);
 
-  if(isNaN(qty) || qty <= 0 || isNaN(price) || price < 0){
-    showToast("Completá una cantidad y un precio válidos.");
+  if(isNaN(qty) || qty <= 0 || isNaN(free) || free <= 0 || free >= qty){
+    showToast("La cantidad gratis tiene que ser menor a la cantidad comprada.");
     return;
   }
 
-  pricing.combos = pricing.combos.filter(c => c.qty !== qty); // reemplaza si ya existía esa cantidad
-  pricing.combos.push({ qty, price });
+  pricing.combos = pricing.combos.filter(c => c.qty !== qty); // reemplaza si ya existía ese escalón
+  pricing.combos.push({ qty, free });
   await savePricingToFirestore();
 
   document.getElementById('newComboQty').value = '';
-  document.getElementById('newComboPrice').value = '';
+  document.getElementById('newComboFree').value = '';
   renderPricingAdmin();
-  showToast("Combo agregado.");
+  showToast("Escalón agregado.");
+});
+
+document.getElementById('btnSaveFullPack').addEventListener('click', async () => {
+  const label = document.getElementById('fullPackLabel').value.trim();
+  pricing.fullPackLabel = label;
+  await savePricingToFirestore();
+  showToast("Cartel de pack completo guardado.");
 });
 
 function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
@@ -1222,30 +1299,36 @@ function renderDrawer(){
 function renderCartSummary(){
   const summary = document.getElementById('cartSummary');
 
-  if(pricing.unitPrice <= 0 && pricing.combos.length === 0){
+  if(pricing.unitPrice <= 0 && pricing.combos.length === 0 && !pricing.fullPackLabel){
     summary.classList.add('hidden');
     return; // no hay precios configurados, no mostramos nada de plata
   }
 
-  const { total, breakdown } = calculateCartTotal(favorites.length);
+  const { total, breakdown, appliedCombo } = calculateCartTotal(favorites.length);
 
   const lines = breakdown.map(b => {
     if(b.type === 'combo'){
-      return `<div class="cart-summary-row"><span>${b.times} combo${b.times>1?'s':''} de ${b.qty} fotos</span><span>${fmtMoney(b.times*b.price)}</span></div>`;
+      return `<div class="cart-summary-row"><span>Combo: comprás ${b.qty}, ${b.free} gratis</span><span>${fmtMoney(b.paid * b.price)}</span></div>`;
     }
     return `<div class="cart-summary-row"><span>${b.qty} foto${b.qty>1?'s':''} individual${b.qty>1?'es':''}</span><span>${fmtMoney(b.qty*b.price)}</span></div>`;
   }).join('');
 
-  // Si existe un combo más grande que la cantidad actual, sugerirlo como ahorro
+  // Si existe un escalón más grande que el actual, sugerirlo como incentivo
   const nextCombo = [...pricing.combos].sort((a,b)=>a.qty-b.qty).find(c => c.qty > favorites.length);
+  const missing = nextCombo ? nextCombo.qty - favorites.length : 0;
   const hint = nextCombo
-    ? `Sumá ${nextCombo.qty - favorites.length} foto${(nextCombo.qty-favorites.length)>1?'s':''} más y pagás ${fmtMoney(nextCombo.price)} por las ${nextCombo.qty} (combo).`
+    ? `Sumá ${missing} foto${missing>1?'s':''} más y llevás ${nextCombo.free} gratis (comprando ${nextCombo.qty}).`
+    : '';
+
+  const fullPackBanner = pricing.fullPackLabel
+    ? `<div class="cart-summary-hint" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line); color:var(--gold);">📦 ${pricing.fullPackLabel}</div>`
     : '';
 
   summary.innerHTML = `
     ${lines}
     <div class="cart-summary-row total"><span>Total</span><strong>${fmtMoney(total)}</strong></div>
     ${hint ? `<div class="cart-summary-hint">💡 ${hint}</div>` : ''}
+    ${fullPackBanner}
   `;
   summary.classList.remove('hidden');
 }
@@ -1343,8 +1426,11 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
     ids.forEach(id => msg += `- ${id}\n`);
     msg += `\n`;
   });
-  const { total } = calculateCartTotal(favorites.length);
+  const { total, appliedCombo } = calculateCartTotal(favorites.length);
   msg += `Total: ${favorites.length} foto(s).`;
+  if(appliedCombo){
+    msg += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
+  }
   if(total > 0){
     msg += ` Precio estimado: ${fmtMoney(total)}.`;
   }
@@ -1471,11 +1557,20 @@ async function loadFoldersForAdmin(){
 
   list.innerHTML = folders.map(f => `
     <div class="folder-row">
-      <div class="info">
-        <strong>${f.name}</strong>
-        <small>${fmtDate(f.date)}</small>
+      <div class="info" style="display:flex; align-items:center; gap:12px;">
+        <span class="folder-cover-thumb">
+          ${f.coverUrl ? `<img src="${f.coverUrl}">` : ICON_CAMERA}
+        </span>
+        <span>
+          <strong>${f.name}</strong>
+          <small>${fmtDate(f.date)}</small>
+        </span>
       </div>
       <div class="actions">
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+          Cambiar portada
+          <input type="file" accept="image/*" data-setcover="${f.id}" style="display:none;">
+        </label>
         <button class="btn btn-outline btn-sm" data-view="${f.id}">Ver fotos</button>
         <button class="btn btn-danger btn-sm" data-delfolder="${f.id}">Eliminar</button>
       </div>
@@ -1487,6 +1582,22 @@ async function loadFoldersForAdmin(){
   });
   list.querySelectorAll('[data-delfolder]').forEach(btn => {
     btn.addEventListener('click', () => deleteFolder(btn.dataset.delfolder));
+  });
+  list.querySelectorAll('[data-setcover]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      showToast("Actualizando portada...");
+      try{
+        const resized = await resizeImageToDataUrl(file, 900);
+        await db.collection('folders').doc(input.dataset.setcover).update({ coverUrl: resized });
+        showToast("Portada actualizada.");
+        await loadFoldersForAdmin();
+      }catch(err){
+        console.error(err);
+        showToast("Hubo un problema cambiando la portada.");
+      }
+    });
   });
 }
 
@@ -1574,6 +1685,9 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
   progressBar.style.display = 'block';
   progressFill.style.width = '0%';
 
+  const folder = folders.find(f => f.id === folderId);
+  let firstUploadedUrl = null;
+
   for(let i=0; i<files.length; i++){
     const file = files[i];
     try{
@@ -1583,11 +1697,17 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
         fileName: file.name,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
+      if(i === 0) firstUploadedUrl = watermarked;
     }catch(err){
       console.error(err);
       showToast("Hubo un problema subiendo una foto.");
     }
     progressFill.style.width = `${Math.round(((i+1)/files.length)*100)}%`;
+  }
+
+  // Si el álbum todavía no tiene portada, usamos automáticamente la primera foto subida.
+  if(folder && !folder.coverUrl && firstUploadedUrl){
+    await db.collection('folders').doc(folderId).update({ coverUrl: firstUploadedUrl });
   }
 
   setTimeout(()=>{ progressBar.style.display = 'none'; }, 700);
@@ -1626,17 +1746,17 @@ function applyWatermark(file){
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Marca de agua repetida en diagonal
+        // Marca de agua repetida en diagonal — más visible y más ancha
         ctx.save();
-        ctx.fillStyle = "rgba(232, 227, 216, 0.28)";
-        ctx.font = `${Math.max(16, Math.round(width/22))}px Inter, sans-serif`;
+        ctx.fillStyle = "rgba(232, 227, 216, 0.42)";
+        ctx.font = `700 ${Math.max(20, Math.round(width/14))}px Inter, sans-serif`;
         ctx.textBaseline = "middle";
         ctx.translate(width/2, height/2);
         ctx.rotate(-Math.PI/6); // -30 grados
 
         const text = WATERMARK_TEXT;
-        const stepX = ctx.measureText(text).width + 80;
-        const stepY = Math.max(60, Math.round(height/7));
+        const stepX = ctx.measureText(text).width + 50;
+        const stepY = Math.max(70, Math.round(height/5.5));
         const diag = Math.sqrt(width*width + height*height);
 
         for(let y = -diag/2; y < diag/2; y += stepY){
