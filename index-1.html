@@ -403,6 +403,26 @@
   .cart-summary-row.total strong{color:var(--gold);}
   .cart-summary-hint{font-size:0.72rem; color:var(--gold-soft); margin-top:8px; line-height:1.5;}
 
+  .all-promos-box{
+    padding:16px 24px; border-top:1px solid var(--line);
+  }
+  .all-promos-box .promos-title{
+    font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey);
+    margin-bottom:10px;
+  }
+  .promo-chip{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 12px; border:1px solid var(--line); border-radius:4px;
+    font-size:0.8rem; margin-bottom:7px; transition:border-color 0.2s;
+  }
+  .promo-chip.achieved{border-color:var(--gold); background:rgba(201,162,75,0.08);}
+  .promo-chip strong{color:var(--gold);}
+  .promo-chip .check{color:var(--gold); font-size:0.9rem;}
+  .full-pack-chip{
+    margin-top:4px; padding:10px 12px; border:1px dashed var(--gold-soft); border-radius:4px;
+    font-size:0.8rem; color:var(--gold); text-align:center;
+  }
+
   select{
     background:var(--panel-2); border:1px solid var(--line); color:var(--bone);
     padding:13px 16px; font-size:0.92rem; border-radius:var(--radius); width:100%;
@@ -425,6 +445,27 @@
     transition:all 0.3s; max-width:90vw; text-align:center;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .promo-popup{
+    position:fixed; top:90px; right:18px; z-index:610; max-width:300px;
+    background:linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
+    border:1px solid var(--gold); border-radius:6px;
+    padding:14px 36px 14px 16px; box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    display:flex; align-items:flex-start; gap:10px;
+    opacity:0; pointer-events:none; transform:translateX(20px) scale(0.96);
+    transition:all 0.35s cubic-bezier(.2,.8,.2,1);
+  }
+  .promo-popup.show{opacity:1; pointer-events:all; transform:translateX(0) scale(1);}
+  .promo-popup-icon{font-size:1.3rem; line-height:1; flex-shrink:0; margin-top:1px;}
+  .promo-popup-text{font-size:0.82rem; line-height:1.45; color:var(--bone);}
+  .promo-popup-text strong{color:var(--gold);}
+  .promo-popup-close{
+    position:absolute; top:8px; right:10px; color:var(--grey); font-size:1.1rem; line-height:1; padding:2px;
+  }
+  .promo-popup-close:hover{color:var(--gold);}
+  @media (max-width:600px){
+    .promo-popup{ top:auto; bottom:100px; right:14px; left:14px; max-width:none; }
+  }
 
   footer{
     padding:40px 6vw; text-align:center; color:var(--grey); font-size:0.78rem;
@@ -484,6 +525,13 @@
 
 <!-- ============ TOAST ============ -->
 <div class="toast" id="toast"></div>
+
+<!-- ============ MINI CARTEL DE PROMO (aparece al ir seleccionando fotos) ============ -->
+<div class="promo-popup" id="promoPopup">
+  <button class="promo-popup-close" id="promoPopupClose" aria-label="Cerrar">×</button>
+  <span class="promo-popup-icon">🎁</span>
+  <span class="promo-popup-text" id="promoPopupText"></span>
+</div>
 
 <!-- ============ NAV ============ -->
 <nav class="nav" id="mainNav">
@@ -692,6 +740,10 @@
         se muestra un cartel invitando a consultar por WhatsApp.
       </p>
       <div class="field">
+        <label for="fullPackMinQty">Cantidad de referencia (ej: 50)</label>
+        <input type="number" id="fullPackMinQty" placeholder="Ej: 50" min="1" step="1">
+      </div>
+      <div class="field">
         <label for="fullPackLabel">Texto del cartel</label>
         <input type="text" id="fullPackLabel" placeholder="Ej: ¿Querés el álbum completo? Consultanos">
       </div>
@@ -705,7 +757,7 @@
       <h3>Agregar cliente del día</h3>
       <div class="row">
         <input type="text" id="newClientName" placeholder="Nombre del cliente">
-        <input type="tel" id="newClientPhone" placeholder="Teléfono (ej: 2944112233)">
+        <input type="tel" id="newClientPhone" placeholder="Tel. con código de país (ej: 542944112233)">
       </div>
       <button class="btn btn-gold" id="btnAddClient">Agregar a la lista</button>
     </div>
@@ -735,6 +787,7 @@
   </div>
   <div class="drawer-list" id="drawerList"></div>
   <div class="cart-summary hidden" id="cartSummary"></div>
+  <div class="all-promos-box hidden" id="allPromosBox"></div>
   <div class="drawer-foot">
     <button class="btn btn-gold" id="sendWhatsapp" data-i18n="drawerSend">Enviar por WhatsApp</button>
     <small data-i18n="drawerSendHint">Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.</small>
@@ -802,7 +855,7 @@ let isAdmin = false;
 let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
 let currentClientFolderName = "";
 let lightboxIndex = 0;
-let pricing = { unitPrice: 0, combos: [], fullPackLabel: '' }; // se carga desde Firestore
+let pricing = { unitPrice: 0, combos: [], fullPackLabel: '', fullPackMinQty: 0 }; // se carga desde Firestore
 
 /* =========================================================
    UTILIDADES UI
@@ -842,7 +895,10 @@ const TRANSLATIONS = {
     photosCount: "fotos",
     toastNoSelection: "Todavía no elegiste ninguna foto.",
     loginErrFields: "Completá tu nombre y email para continuar.",
-    loginErrEmail: "Ingresá un email válido."
+    loginErrEmail: "Ingresá un email válido.",
+    photoOf: "Foto {n} de {total}",
+    promoClose: "¡Estás cerca! Sumá {missing} foto(s) más y llevás <strong>{free} gratis</strong> (comprando {qty}).",
+    promoReached: "¡Llegaste a la promo de {qty} fotos! Te llevás <strong>{free} gratis</strong>."
   },
   pt: {
     navHello: "Olá",
@@ -874,7 +930,10 @@ const TRANSLATIONS = {
     photosCount: "fotos",
     toastNoSelection: "Você ainda não escolheu nenhuma foto.",
     loginErrFields: "Preencha seu nome e email para continuar.",
-    loginErrEmail: "Digite um email válido."
+    loginErrEmail: "Digite um email válido.",
+    photoOf: "Foto {n} de {total}",
+    promoClose: "Você está perto! Adicione {missing} foto(s) e ganhe <strong>{free} grátis</strong> (comprando {qty}).",
+    promoReached: "Você chegou na promoção de {qty} fotos! Você ganha <strong>{free} grátis</strong>."
   }
 };
 
@@ -941,6 +1000,15 @@ function fmtDate(dateStr){
   if(!dateStr) return "";
   const [y,m,d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
+}
+
+/* Detecta si un teléfono es de Brasil (código de país 55) para
+   mandar las notificaciones del admin en portugués automáticamente.
+   Acepta el número con o sin '+' adelante (ej: "5511987654321" o "+5511987654321"). */
+function isBrazilPhone(phone){
+  if(!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith('55');
 }
 
 /* =========================================================
@@ -1134,6 +1202,7 @@ async function loadPricing(){
       pricing.unitPrice = data.unitPrice || 0;
       pricing.combos = (data.combos || []).sort((a,b) => a.qty - b.qty); // {qty, free}
       pricing.fullPackLabel = data.fullPackLabel || '';
+      pricing.fullPackMinQty = data.fullPackMinQty || 0;
     }
   }catch(e){ console.error(e); }
 }
@@ -1171,9 +1240,60 @@ function fmtMoney(n){
   return `$${Number(n).toLocaleString('es-AR')}`;
 }
 
+/* =========================================================
+   CARTEL DE PROMO CERCANA
+   Cada vez que el carrito cambia, si el cliente está a 1 o 2
+   fotos de alcanzar el próximo escalón de combo, se lo avisa
+   con un cartel flotante (sin repetirlo para el mismo escalón).
+========================================================= */
+let lastPromoShownForQty = null; // evita repetir el aviso para la misma cantidad de fotos
+
+function checkPromoPopup(){
+  if(pricing.combos.length === 0) return;
+
+  const qty = favorites.length;
+  const sortedCombos = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+
+  // ¿Ya alcanzó algún escalón con esta cantidad exacta? Avisamos que lo logró.
+  const justReached = sortedCombos.find(c => c.qty === qty);
+  if(justReached){
+    showPromoPopup(t('promoReached')
+      .replace('{qty}', justReached.qty)
+      .replace('{free}', justReached.free));
+    lastPromoShownForQty = qty;
+    return;
+  }
+
+  // ¿Está cerca del próximo escalón (1 o 2 fotos por sumar)?
+  const nextCombo = sortedCombos.find(c => c.qty > qty);
+  if(nextCombo){
+    const missing = nextCombo.qty - qty;
+    if(missing <= 2 && lastPromoShownForQty !== qty){
+      showPromoPopup(t('promoClose')
+        .replace('{missing}', missing)
+        .replace('{qty}', nextCombo.qty)
+        .replace('{free}', nextCombo.free));
+      lastPromoShownForQty = qty;
+    }
+  }
+}
+
+function showPromoPopup(html){
+  const popup = document.getElementById('promoPopup');
+  document.getElementById('promoPopupText').innerHTML = html;
+  popup.classList.add('show');
+  clearTimeout(popup._hideTimer);
+  popup._hideTimer = setTimeout(() => popup.classList.remove('show'), 5000);
+}
+
+document.getElementById('promoPopupClose').addEventListener('click', () => {
+  document.getElementById('promoPopup').classList.remove('show');
+});
+
 function renderPricingAdmin(){
   document.getElementById('priceUnit').value = pricing.unitPrice || '';
   document.getElementById('fullPackLabel').value = pricing.fullPackLabel || '';
+  document.getElementById('fullPackMinQty').value = pricing.fullPackMinQty || '';
 
   const list = document.getElementById('combosList');
   if(pricing.combos.length === 0){
@@ -1207,7 +1327,8 @@ async function savePricingToFirestore(){
   await db.collection('config').doc('pricing').set({
     unitPrice: pricing.unitPrice,
     combos: pricing.combos,
-    fullPackLabel: pricing.fullPackLabel || ''
+    fullPackLabel: pricing.fullPackLabel || '',
+    fullPackMinQty: pricing.fullPackMinQty || 0
   });
 }
 
@@ -1244,7 +1365,9 @@ document.getElementById('btnAddCombo').addEventListener('click', async () => {
 
 document.getElementById('btnSaveFullPack').addEventListener('click', async () => {
   const label = document.getElementById('fullPackLabel').value.trim();
+  const minQty = parseInt(document.getElementById('fullPackMinQty').value, 10);
   pricing.fullPackLabel = label;
+  pricing.fullPackMinQty = isNaN(minQty) ? 0 : minQty;
   await savePricingToFirestore();
   showToast("Cartel de pack completo guardado.");
 });
@@ -1258,40 +1381,38 @@ function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
   }
   saveClientSession();
   renderDrawer();
+  checkPromoPopup();
 }
 
 function renderDrawer(){
   document.getElementById('favBadge').textContent = favorites.length;
   const list = document.getElementById('drawerList');
-  const summary = document.getElementById('cartSummary');
 
   if(favorites.length === 0){
     list.innerHTML = `<p class="drawer-empty">${t('drawerEmpty')}</p>`;
-    summary.classList.add('hidden');
-    return;
-  }
+  } else {
+    list.innerHTML = favorites.map(f => `
+      <div class="drawer-item">
+        <span class="thumb"><img src="${f.thumb}"></span>
+        <span class="meta">
+          <strong>${f.folderName}</strong>
+          <small>${f.fileName}</small>
+        </span>
+        <button class="remove" data-remove="${f.photoId}" aria-label="Quitar">×</button>
+      </div>
+    `).join('');
 
-  list.innerHTML = favorites.map(f => `
-    <div class="drawer-item">
-      <span class="thumb"><img src="${f.thumb}"></span>
-      <span class="meta">
-        <strong>${f.folderName}</strong>
-        <small>${f.fileName}</small>
-      </span>
-      <button class="remove" data-remove="${f.photoId}" aria-label="Quitar">×</button>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('[data-remove]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.remove;
-      favorites = favorites.filter(f => f.photoId !== id);
-      saveClientSession();
-      renderDrawer();
-      const heart = document.querySelector(`.fav-toggle[data-photo="${id}"]`);
-      if(heart) heart.classList.remove('active');
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.remove;
+        favorites = favorites.filter(f => f.photoId !== id);
+        saveClientSession();
+        renderDrawer();
+        const heart = document.querySelector(`.fav-toggle[data-photo="${id}"]`);
+        if(heart) heart.classList.remove('active');
+      });
     });
-  });
+  }
 
   renderCartSummary();
 }
@@ -1299,38 +1420,68 @@ function renderDrawer(){
 function renderCartSummary(){
   const summary = document.getElementById('cartSummary');
 
-  if(pricing.unitPrice <= 0 && pricing.combos.length === 0 && !pricing.fullPackLabel){
+  if(favorites.length === 0 || (pricing.unitPrice <= 0 && pricing.combos.length === 0)){
     summary.classList.add('hidden');
-    return; // no hay precios configurados, no mostramos nada de plata
+  } else {
+    const { total, breakdown } = calculateCartTotal(favorites.length);
+
+    const lines = breakdown.map(b => {
+      if(b.type === 'combo'){
+        return `<div class="cart-summary-row"><span>Combo: comprás ${b.qty}, ${b.free} gratis</span><span>${fmtMoney(b.paid * b.price)}</span></div>`;
+      }
+      return `<div class="cart-summary-row"><span>${b.qty} foto${b.qty>1?'s':''} individual${b.qty>1?'es':''}</span><span>${fmtMoney(b.qty*b.price)}</span></div>`;
+    }).join('');
+
+    // Si existe un escalón más grande que el actual, sugerirlo como incentivo
+    const nextCombo = [...pricing.combos].sort((a,b)=>a.qty-b.qty).find(c => c.qty > favorites.length);
+    const missing = nextCombo ? nextCombo.qty - favorites.length : 0;
+    const hint = nextCombo
+      ? `Sumá ${missing} foto${missing>1?'s':''} más y llevás ${nextCombo.free} gratis (comprando ${nextCombo.qty}).`
+      : '';
+
+    summary.innerHTML = `
+      ${lines}
+      <div class="cart-summary-row total"><span>Total</span><strong>${fmtMoney(total)}</strong></div>
+      ${hint ? `<div class="cart-summary-hint">💡 ${hint}</div>` : ''}
+    `;
+    summary.classList.remove('hidden');
   }
 
-  const { total, breakdown, appliedCombo } = calculateCartTotal(favorites.length);
+  renderAllPromosBox();
+}
 
-  const lines = breakdown.map(b => {
-    if(b.type === 'combo'){
-      return `<div class="cart-summary-row"><span>Combo: comprás ${b.qty}, ${b.free} gratis</span><span>${fmtMoney(b.paid * b.price)}</span></div>`;
-    }
-    return `<div class="cart-summary-row"><span>${b.qty} foto${b.qty>1?'s':''} individual${b.qty>1?'es':''}</span><span>${fmtMoney(b.qty*b.price)}</span></div>`;
+/* Muestra SIEMPRE el listado completo de promociones disponibles
+   (todos los escalones + el pack completo si existe), marcando
+   cuál ya alcanzó el cliente con su selección actual. */
+function renderAllPromosBox(){
+  const box = document.getElementById('allPromosBox');
+
+  if(pricing.combos.length === 0 && !pricing.fullPackLabel){
+    box.classList.add('hidden');
+    return;
+  }
+
+  const qty = favorites.length;
+  const sorted = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+
+  const chips = sorted.map(c => {
+    const achieved = qty >= c.qty;
+    return `
+      <div class="promo-chip ${achieved ? 'achieved' : ''}">
+        <span>${achieved ? '<span class="check">✓</span> ' : ''}Comprás <strong>${c.qty}</strong>, llevás <strong>${c.free} gratis</strong></span>
+      </div>`;
   }).join('');
 
-  // Si existe un escalón más grande que el actual, sugerirlo como incentivo
-  const nextCombo = [...pricing.combos].sort((a,b)=>a.qty-b.qty).find(c => c.qty > favorites.length);
-  const missing = nextCombo ? nextCombo.qty - favorites.length : 0;
-  const hint = nextCombo
-    ? `Sumá ${missing} foto${missing>1?'s':''} más y llevás ${nextCombo.free} gratis (comprando ${nextCombo.qty}).`
+  const fullPackChip = pricing.fullPackLabel
+    ? `<div class="full-pack-chip">📦 ${pricing.fullPackMinQty > 0 ? `<strong>+${pricing.fullPackMinQty}</strong> · ` : ''}${pricing.fullPackLabel}</div>`
     : '';
 
-  const fullPackBanner = pricing.fullPackLabel
-    ? `<div class="cart-summary-hint" style="margin-top:14px; padding-top:12px; border-top:1px solid var(--line); color:var(--gold);">📦 ${pricing.fullPackLabel}</div>`
-    : '';
-
-  summary.innerHTML = `
-    ${lines}
-    <div class="cart-summary-row total"><span>Total</span><strong>${fmtMoney(total)}</strong></div>
-    ${hint ? `<div class="cart-summary-hint">💡 ${hint}</div>` : ''}
-    ${fullPackBanner}
+  box.innerHTML = `
+    <div class="promos-title">Promociones disponibles</div>
+    ${chips}
+    ${fullPackChip}
   `;
-  summary.classList.remove('hidden');
+  box.classList.remove('hidden');
 }
 
 const drawer = document.getElementById('drawer');
@@ -1366,7 +1517,7 @@ function renderLightbox(){
 
   lightboxImg.src = photo.url;
   lightboxFolderName.textContent = currentClientFolderName;
-  lightboxFileName.textContent = displayName;
+  lightboxFileName.textContent = `${t('photoOf').replace('{n}', lightboxIndex+1).replace('{total}', currentClientPhotos.length)}`;
 
   const isFav = favorites.some(f => f.photoId === photo.id);
   lightboxFavBtn.classList.toggle('active', isFav);
@@ -1434,7 +1585,6 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
   if(total > 0){
     msg += ` Precio estimado: ${fmtMoney(total)}.`;
   }
-  msg += `\n\n📷 Galería: ${APP_URL}`;
 
   // Guardar el pedido en Firestore para que quede registro
   try{
@@ -1858,8 +2008,12 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-notify]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Aviso que suas fotos de hoje já estão na galeria. Você pode entrar, escolher suas favoritas e me mandar a seleção por este mesmo WhatsApp.\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
       await db.collection('clientes').doc(btn.dataset.notify).update({ status: 'notified' });
       await loadClientsForAdmin();
     });
@@ -1867,8 +2021,12 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-remind]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Lembrando que suas fotos continuam disponíveis na galeria para você escolher suas favoritas. Qualquer dúvida, me avise!\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     });
   });
 
