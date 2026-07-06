@@ -115,6 +115,13 @@
   }
   .nav-link:hover{color:var(--gold);}
 
+  .nav-ig-link{
+    display:flex; align-items:center; justify-content:center;
+    color:var(--grey); transition:color 0.2s;
+    padding:4px;
+  }
+  .nav-ig-link:hover{ color:var(--gold); }
+
   .lang-switch{
     display:flex; align-items:center; gap:4px; border:1px solid var(--line);
     border-radius:20px; padding:4px; background:var(--panel-2);
@@ -537,6 +544,13 @@
 <nav class="nav" id="mainNav">
   <div class="brand">Crisjapo<span class="mark">Fotografías</span></div>
   <div class="nav-right">
+    <a href="https://instagram.com/japo.ph" target="_blank" rel="noopener" class="nav-ig-link" aria-label="Instagram @japo.ph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="20" height="20">
+        <rect x="2" y="2" width="20" height="20" rx="5"/>
+        <circle cx="12" cy="12" r="4.5"/>
+        <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
     <div class="lang-switch" id="langSwitch">
       <button class="lang-btn active" data-lang="es"><span class="flag">🇦🇷</span>ES</button>
       <button class="lang-btn" data-lang="pt"><span class="flag">🇧🇷</span>PT</button>
@@ -686,9 +700,10 @@
           <select id="folderSelectForUpload"></select>
         </div>
         <label class="upload-zone" id="uploadZone">
-          <input type="file" id="fileInput" accept="image/*" multiple>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/heic,image/heif,image/webp,image/*" multiple>
           <strong>Tocá para elegir fotos</strong>
           <p>Se les va a poner tu marca de agua automáticamente.</p>
+          <p style="margin-top:8px; font-size:0.75rem; opacity:0.7;">📱 En tablet: tocá las 3 rayas (☰) en el selector de archivos y elegí "Tarjeta SD" o "Almacenamiento externo" para acceder a tu memoria.</p>
         </label>
         <div class="progress-bar" id="uploadProgress"><div class="fill" id="uploadProgressFill"></div></div>
       </div>
@@ -740,6 +755,10 @@
         se muestra un cartel invitando a consultar por WhatsApp.
       </p>
       <div class="field">
+        <label for="fullPackMinQty">Cantidad de referencia (ej: 50)</label>
+        <input type="number" id="fullPackMinQty" placeholder="Ej: 50" min="1" step="1">
+      </div>
+      <div class="field">
         <label for="fullPackLabel">Texto del cartel</label>
         <input type="text" id="fullPackLabel" placeholder="Ej: ¿Querés el álbum completo? Consultanos">
       </div>
@@ -753,7 +772,7 @@
       <h3>Agregar cliente del día</h3>
       <div class="row">
         <input type="text" id="newClientName" placeholder="Nombre del cliente">
-        <input type="tel" id="newClientPhone" placeholder="Teléfono (ej: 2944112233)">
+        <input type="tel" id="newClientPhone" placeholder="Tel. con código de país (ej: 542944112233)">
       </div>
       <button class="btn btn-gold" id="btnAddClient">Agregar a la lista</button>
     </div>
@@ -851,7 +870,7 @@ let isAdmin = false;
 let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
 let currentClientFolderName = "";
 let lightboxIndex = 0;
-let pricing = { unitPrice: 0, combos: [], fullPackLabel: '' }; // se carga desde Firestore
+let pricing = { unitPrice: 0, combos: [], fullPackLabel: '', fullPackMinQty: 0 }; // se carga desde Firestore
 
 /* =========================================================
    UTILIDADES UI
@@ -996,6 +1015,15 @@ function fmtDate(dateStr){
   if(!dateStr) return "";
   const [y,m,d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
+}
+
+/* Detecta si un teléfono es de Brasil (código de país 55) para
+   mandar las notificaciones del admin en portugués automáticamente.
+   Acepta el número con o sin '+' adelante (ej: "5511987654321" o "+5511987654321"). */
+function isBrazilPhone(phone){
+  if(!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith('55');
 }
 
 /* =========================================================
@@ -1189,6 +1217,7 @@ async function loadPricing(){
       pricing.unitPrice = data.unitPrice || 0;
       pricing.combos = (data.combos || []).sort((a,b) => a.qty - b.qty); // {qty, free}
       pricing.fullPackLabel = data.fullPackLabel || '';
+      pricing.fullPackMinQty = data.fullPackMinQty || 0;
     }
   }catch(e){ console.error(e); }
 }
@@ -1279,6 +1308,7 @@ document.getElementById('promoPopupClose').addEventListener('click', () => {
 function renderPricingAdmin(){
   document.getElementById('priceUnit').value = pricing.unitPrice || '';
   document.getElementById('fullPackLabel').value = pricing.fullPackLabel || '';
+  document.getElementById('fullPackMinQty').value = pricing.fullPackMinQty || '';
 
   const list = document.getElementById('combosList');
   if(pricing.combos.length === 0){
@@ -1312,7 +1342,8 @@ async function savePricingToFirestore(){
   await db.collection('config').doc('pricing').set({
     unitPrice: pricing.unitPrice,
     combos: pricing.combos,
-    fullPackLabel: pricing.fullPackLabel || ''
+    fullPackLabel: pricing.fullPackLabel || '',
+    fullPackMinQty: pricing.fullPackMinQty || 0
   });
 }
 
@@ -1349,7 +1380,9 @@ document.getElementById('btnAddCombo').addEventListener('click', async () => {
 
 document.getElementById('btnSaveFullPack').addEventListener('click', async () => {
   const label = document.getElementById('fullPackLabel').value.trim();
+  const minQty = parseInt(document.getElementById('fullPackMinQty').value, 10);
   pricing.fullPackLabel = label;
+  pricing.fullPackMinQty = isNaN(minQty) ? 0 : minQty;
   await savePricingToFirestore();
   showToast("Cartel de pack completo guardado.");
 });
@@ -1455,7 +1488,7 @@ function renderAllPromosBox(){
   }).join('');
 
   const fullPackChip = pricing.fullPackLabel
-    ? `<div class="full-pack-chip">📦 ${pricing.fullPackLabel}</div>`
+    ? `<div class="full-pack-chip">📦 ${pricing.fullPackMinQty > 0 ? `<strong>+${pricing.fullPackMinQty}</strong> · ` : ''}${pricing.fullPackLabel}</div>`
     : '';
 
   box.innerHTML = `
@@ -1553,20 +1586,35 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
     byFolder[f.folderName].push(f.fileName);
   });
 
-  let msg = `Hola Crisjapo! Soy ${currentClient.name} (${currentClient.email}) y quiero estas fotos:\n\n`;
-  Object.entries(byFolder).forEach(([folder, ids]) => {
-    msg += `*${folder}*\n`;
-    ids.forEach(id => msg += `- ${id}\n`);
-    msg += `\n`;
-  });
   const { total, appliedCombo } = calculateCartTotal(favorites.length);
-  msg += `Total: ${favorites.length} foto(s).`;
+
+  // Arma el detalle de fotos (igual para ambos idiomas)
+  let detalle = '';
+  Object.entries(byFolder).forEach(([folder, ids]) => {
+    detalle += `*${folder}*\n`;
+    ids.forEach(id => detalle += `- ${id}\n`);
+    detalle += `\n`;
+  });
+
+  let resumenES = `Total: ${favorites.length} foto(s).`;
+  let resumenPT = `Total: ${favorites.length} foto(s).`;
   if(appliedCombo){
-    msg += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
+    resumenES += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
+    resumenPT += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} grátis)`;
   }
   if(total > 0){
-    msg += ` Precio estimado: ${fmtMoney(total)}.`;
+    resumenES += ` Precio estimado: ${fmtMoney(total)}.`;
+    resumenPT += ` Preço estimado: ${fmtMoney(total)}.`;
   }
+
+  const msg =
+    `🇦🇷 *Hola Crisjapo!* Soy ${currentClient.name} (${currentClient.email}) y quiero estas fotos:\n\n` +
+    detalle +
+    resumenES +
+    `\n\n` +
+    `🇧🇷 *Olá Crisjapo!* Sou ${currentClient.name} (${currentClient.email}) e quero essas fotos:\n\n` +
+    detalle +
+    resumenPT;
 
   // Guardar el pedido en Firestore para que quede registro
   try{
@@ -1990,8 +2038,12 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-notify]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Aviso que suas fotos de hoje já estão na galeria. Você pode entrar, escolher suas favoritas e me mandar a seleção por este mesmo WhatsApp.\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
       await db.collection('clientes').doc(btn.dataset.notify).update({ status: 'notified' });
       await loadClientsForAdmin();
     });
@@ -1999,8 +2051,12 @@ async function loadClientsForAdmin(){
 
   list.querySelectorAll('[data-remind]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const msg = `Hola ${btn.dataset.name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${btn.dataset.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Lembrando que suas fotos continuam disponíveis na galeria para você escolher suas favoritas. Qualquer dúvida, me avise!\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     });
   });
 
