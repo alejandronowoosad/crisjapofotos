@@ -109,6 +109,25 @@
   .nav-right{display:flex; align-items:center; gap:16px; font-size:0.78rem;}
   .nav-user{color:var(--grey);}
   .nav-user strong{color:var(--bone);}
+
+  .user-pill{
+    display:flex; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:24px; padding:5px 12px 5px 6px;
+  }
+  .user-initial{
+    width:28px; height:28px; border-radius:50%;
+    background:var(--gold); color:var(--black);
+    font-size:0.78rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .user-pill strong{ font-size:0.82rem; color:var(--bone); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav-logout-btn{
+    font-size:0.72rem; color:var(--grey); text-decoration:underline;
+    padding:0; transition:color 0.2s;
+  }
+  .nav-logout-btn:hover{ color:var(--danger); }
   .nav-link{
     color:var(--grey); letter-spacing:0.06em; text-transform:uppercase; font-size:0.72rem;
     transition:color 0.2s;
@@ -246,7 +265,7 @@
   .album-card{
     position:relative; overflow:hidden; cursor:pointer; display:block;
     aspect-ratio:3/4; border-radius:6px;
-    background:linear-gradient(160deg, #0e1f1a 0%, #0a1510 60%, #061009 100%);
+    background:linear-gradient(160deg, #111108 0%, #0d0d05 60%, #080800 100%);
     border:1px solid rgba(255,255,255,0.07);
     transition:transform 0.22s, box-shadow 0.22s;
   }
@@ -260,10 +279,10 @@
 
   /* Copos de nieve */
   .album-snowflake{
-    position:absolute; color:#b8d8cc; opacity:0.7; font-size:1.1rem; user-select:none;
+    position:absolute; color:var(--gold); opacity:0.75; font-size:1.1rem; user-select:none;
   }
-  .album-snowflake.s1{ top:12px; left:14px; font-size:1rem; opacity:0.5; }
-  .album-snowflake.s2{ top:18px; right:20px; font-size:0.75rem; opacity:0.6; }
+  .album-snowflake.s1{ top:12px; left:14px; font-size:1rem; opacity:0.55; }
+  .album-snowflake.s2{ top:18px; right:20px; font-size:0.75rem; opacity:0.65; }
 
   /* Contenido de la tarjeta */
   .album-card-content{
@@ -277,7 +296,7 @@
     text-shadow:0 1px 4px rgba(0,0,0,0.6);
   }
   .album-card-date{
-    font-size:0.78rem; font-weight:600; color:#7ec8a4;
+    font-size:0.78rem; font-weight:600; color:var(--gold);
     letter-spacing:0.04em;
   }
   .album-frame-no{ display:none; } /* ya no se usa */
@@ -609,8 +628,13 @@
       <button class="lang-btn active" data-lang="es"><span class="flag">🇦🇷</span>ES</button>
       <button class="lang-btn" data-lang="pt"><span class="flag">🇧🇷</span>PT</button>
     </div>
-    <span class="nav-user hidden" id="navUserBox"><span data-i18n="navHello">Hola</span>, <strong id="navUserName"></strong></span>
-    <button class="nav-link hidden" id="navLogout" data-i18n="navLogout">Salir</button>
+    <span class="nav-user hidden" id="navUserBox">
+      <span class="user-pill">
+        <span class="user-initial" id="navUserInitial"></span>
+        <strong id="navUserName"></strong>
+        <button class="nav-logout-btn" id="navLogout" data-i18n="navLogout">salir</button>
+      </span>
+    </span>
     <a href="#" class="nav-link" id="navAdminLink" data-i18n="navAdmin">Admin</a>
   </div>
 </nav>
@@ -1176,9 +1200,10 @@ document.getElementById('btnClientLogin').addEventListener('click', () => {
 });
 
 function updateNavForClient(){
+  const initial = currentClient.name.trim().charAt(0).toUpperCase();
+  document.getElementById('navUserInitial').textContent = initial;
+  document.getElementById('navUserName').textContent = currentClient.name.split(' ')[0]; // solo primer nombre
   document.getElementById('navUserBox').classList.remove('hidden');
-  document.getElementById('navUserName').textContent = currentClient.name;
-  document.getElementById('navLogout').classList.remove('hidden');
 }
 
 document.getElementById('navLogout').addEventListener('click', () => {
@@ -1187,10 +1212,11 @@ document.getElementById('navLogout').addEventListener('click', () => {
   localStorage.removeItem('crisjapo_client');
   localStorage.removeItem('crisjapo_favs');
   document.getElementById('navUserBox').classList.add('hidden');
-  document.getElementById('navLogout').classList.add('hidden');
+  document.getElementById('favLauncher').classList.remove('hidden');
   document.getElementById('favLauncher').classList.add('hidden');
   document.getElementById('clientName').value = '';
   document.getElementById('clientEmail').value = '';
+  renderDrawer();
   showScreen('screenClientLogin');
 });
 
@@ -1216,10 +1242,10 @@ async function loadFoldersForClient(){
       <button class="album-card" data-folder="${f.id}">
         <!-- montañas de fondo -->
         <svg class="album-bg-scene" viewBox="0 0 200 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="0,130 55,40 110,130" fill="#2a6649"/>
-          <polygon points="60,130 120,20 180,130" fill="#1e4d36"/>
-          <polygon points="120,130 165,55 210,130" fill="#2a6649"/>
-          <polygon points="115,20 120,20 132,38 108,38" fill="#c8e6d8"/>
+          <polygon points="0,130 55,40 110,130" fill="#3d2e00"/>
+          <polygon points="60,130 120,20 180,130" fill="#2a1f00"/>
+          <polygon points="120,130 165,55 210,130" fill="#3d2e00"/>
+          <polygon points="115,20 120,20 132,38 108,38" fill="#C9A24B"/>
         </svg>
         <!-- copos de nieve -->
         <span class="album-snowflake s1">❄</span>
