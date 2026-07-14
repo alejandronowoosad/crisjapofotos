@@ -241,24 +241,46 @@
     gap:10px;
   }
   @media (max-width:980px){ .albums-grid{grid-template-columns:repeat(3,1fr);} }
-  @media (max-width:620px){ .albums-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:580px){ .albums-grid{grid-template-columns:repeat(2,1fr);} }
 
   .album-card{
-    position:relative; background:var(--panel); border:1px solid var(--line);
-    padding:16px; cursor:pointer; display:block; text-align:left;
-    transition:border-color 0.2s, transform 0.18s;
+    position:relative; overflow:hidden; cursor:pointer; display:block;
+    aspect-ratio:3/4; border-radius:6px;
+    background:linear-gradient(160deg, #0e1f1a 0%, #0a1510 60%, #061009 100%);
+    border:1px solid rgba(255,255,255,0.07);
+    transition:transform 0.22s, box-shadow 0.22s;
   }
-  .album-card:hover{ border-color:var(--gold-soft); transform:translateY(-2px); }
-  .album-card .album-icon{
-    width:36px; height:36px; border-radius:50%;
-    border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center;
-    margin-bottom:12px; background:var(--panel-2);
+  .album-card:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 12px 32px rgba(0,0,0,0.5); }
+
+  /* Escena de montañas dibujada con SVG inline como fondo */
+  .album-bg-scene{
+    position:absolute; bottom:0; left:0; right:0; height:65%;
+    opacity:0.22;
   }
-  .album-card .album-icon svg{ width:18px; height:18px; stroke:var(--gold); fill:none; }
-  .album-frame-no{ font-size:0.62rem; letter-spacing:0.08em; color:var(--gold-soft); display:block; margin-bottom:6px; }
-  .album-info h3{ color:var(--bone); font-size:1rem; font-family:'Fraunces',serif; font-weight:500; line-height:1.3; }
-  .album-info .count{ margin-top:5px; font-size:0.74rem; color:var(--grey); }
+
+  /* Copos de nieve */
+  .album-snowflake{
+    position:absolute; color:#b8d8cc; opacity:0.7; font-size:1.1rem; user-select:none;
+  }
+  .album-snowflake.s1{ top:12px; left:14px; font-size:1rem; opacity:0.5; }
+  .album-snowflake.s2{ top:18px; right:20px; font-size:0.75rem; opacity:0.6; }
+
+  /* Contenido de la tarjeta */
+  .album-card-content{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:flex-end; padding:14px 14px 16px;
+  }
+  .album-card-name{
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem;
+    color:#ffffff; line-height:1.2; letter-spacing:0.03em;
+    text-transform:uppercase; margin-bottom:5px;
+    text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  }
+  .album-card-date{
+    font-size:0.78rem; font-weight:600; color:#7ec8a4;
+    letter-spacing:0.04em;
+  }
+  .album-frame-no{ display:none; } /* ya no se usa */
   .empty-state{
     grid-column:1/-1; padding:80px 20px; text-align:center; color:var(--grey);
     background:var(--black);
@@ -1179,37 +1201,53 @@ async function loadFoldersForClient(){
   const grid = document.getElementById('clientFoldersGrid');
   grid.innerHTML = `<div class="empty-state">${t('loadingAlbums')}</div>`;
 
-  const snap = await db.collection('folders').orderBy('date', 'desc').get();
-  folders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try{
+    const snap = await db.collection('folders').orderBy('date', 'desc').get();
+    folders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  if(folders.length === 0){
-    grid.innerHTML = `<div class="empty-state">${t('noAlbumsYet')}</div>`;
-    return;
+    if(folders.length === 0){
+      grid.innerHTML = `<div class="empty-state">${t('noAlbumsYet')}</div>`;
+      return;
+    }
+
+    grid.innerHTML = folders.map(f => {
+      const dateLabel = fmtDateAlbum(f.date);
+      return `
+      <button class="album-card" data-folder="${f.id}">
+        <!-- montañas de fondo -->
+        <svg class="album-bg-scene" viewBox="0 0 200 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="0,130 55,40 110,130" fill="#2a6649"/>
+          <polygon points="60,130 120,20 180,130" fill="#1e4d36"/>
+          <polygon points="120,130 165,55 210,130" fill="#2a6649"/>
+          <polygon points="115,20 120,20 132,38 108,38" fill="#c8e6d8"/>
+        </svg>
+        <!-- copos de nieve -->
+        <span class="album-snowflake s1">❄</span>
+        <span class="album-snowflake s2">❄</span>
+        <!-- texto -->
+        <div class="album-card-content">
+          <div class="album-card-name">${f.name}</div>
+          <div class="album-card-date">${dateLabel}</div>
+        </div>
+      </button>`;
+    }).join('');
+
+    grid.querySelectorAll('.album-card').forEach(card => {
+      card.addEventListener('click', () => openClientFolder(card.dataset.folder));
+    });
+
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `<div class="empty-state">Error cargando álbumes. Revisá tu conexión.</div>`;
   }
+}
 
-  // contar fotos por álbum
-  const counts = {};
-  for(const f of folders){
-    const photosSnap = await db.collection('folders').doc(f.id).collection('photos').get();
-    counts[f.id] = photosSnap.size;
-  }
-
-  grid.innerHTML = folders.map((f, idx) => `
-    <button class="album-card" data-folder="${f.id}">
-      <div class="album-icon">
-        <svg viewBox="0 0 24 24" stroke-width="1.4"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
-      </div>
-      <span class="album-frame-no">${fmtDate(f.date)}</span>
-      <div class="album-info">
-        <h3>${f.name}</h3>
-        <span class="count">${counts[f.id] || 0} ${t('photosCount')}</span>
-      </div>
-    </button>
-  `).join('');
-
-  grid.querySelectorAll('.album-card').forEach(card => {
-    card.addEventListener('click', () => openClientFolder(card.dataset.folder));
-  });
+/* Formatea fecha como "13 de jul" para las tarjetas */
+function fmtDateAlbum(dateStr){
+  if(!dateStr) return '';
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const [y, m, d] = dateStr.split('-');
+  return `${parseInt(d)} de ${months[parseInt(m)-1]}`;
 }
 
 /* =========================================================
@@ -1658,33 +1696,22 @@ document.getElementById('sendWhatsapp').addEventListener('click', async () => {
 
   const { total, appliedCombo } = calculateCartTotal(favorites.length);
 
-  // Arma el detalle de fotos (igual para ambos idiomas)
-  let detalle = '';
+  // Mensaje solo en español — claro y prolijo para el fotógrafo
+  let msg = `📸 *${currentClient.name}* (${currentClient.email})\n\n`;
+
   Object.entries(byFolder).forEach(([folder, ids]) => {
-    detalle += `*${folder}*\n`;
-    ids.forEach(id => detalle += `- ${id}\n`);
-    detalle += `\n`;
+    msg += `🗂 *${folder}*\n`;
+    ids.forEach(id => msg += `  • ${id}\n`);
+    msg += `\n`;
   });
 
-  let resumenES = `Total: ${favorites.length} foto(s).`;
-  let resumenPT = `Total: ${favorites.length} foto(s).`;
+  msg += `*Total: ${favorites.length} foto${favorites.length > 1 ? 's' : ''}*`;
   if(appliedCombo){
-    resumenES += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
-    resumenPT += ` (Combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} grátis)`;
+    msg += ` (combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
   }
   if(total > 0){
-    resumenES += ` Precio estimado: ${fmtMoney(total)}.`;
-    resumenPT += ` Preço estimado: ${fmtMoney(total)}.`;
+    msg += `\n💰 *Precio estimado: ${fmtMoney(total)}*`;
   }
-
-  const msg =
-    `🇦🇷 *Hola Crisjapo!* Soy ${currentClient.name} (${currentClient.email}) y quiero estas fotos:\n\n` +
-    detalle +
-    resumenES +
-    `\n\n` +
-    `🇧🇷 *Olá Crisjapo!* Sou ${currentClient.name} (${currentClient.email}) e quero essas fotos:\n\n` +
-    detalle +
-    resumenPT;
 
   // Abrimos WhatsApp INMEDIATAMENTE (antes de cualquier await)
   // para que el navegador móvil no lo bloquee como popup no autorizado.
@@ -1870,35 +1897,56 @@ async function openAdminFolderPhotos(folderId){
   currentFolderId = folderId;
   const folder = folders.find(f => f.id === folderId);
   document.getElementById('adminPhotosTitle').textContent = `${folder.name} — ${fmtDate(folder.date)}`;
-  document.getElementById('adminPhotosPanel').classList.remove('hidden');
+
+  const panel = document.getElementById('adminPhotosPanel');
+  panel.classList.remove('hidden');
 
   const grid = document.getElementById('adminPhotoGrid');
-  grid.innerHTML = `<p style="color:var(--grey);">Cargando...</p>`;
-
-  const snap = await db.collection('folders').doc(folderId).collection('photos').orderBy('createdAt','asc').get();
-  const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-  if(photos.length === 0){
-    grid.innerHTML = `<p style="color:var(--grey);">Este álbum no tiene fotos todavía.</p>`;
-    return;
-  }
-
-  grid.innerHTML = photos.map((p, i) => {
-    const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
-    return `
-    <div class="photo-slide">
-      <span class="notch"></span>
-      <div class="photo-admin-actions">
-        <button class="icon-btn" data-delphoto="${p.id}" aria-label="Eliminar foto">${ICON_TRASH}</button>
-      </div>
-      <div class="frame"><img src="${p.url}" loading="lazy"></div>
-      <span class="idx" title="${displayName}">${displayName}</span>
+  grid.innerHTML = `
+    <div style="grid-column:1/-1; padding:30px; text-align:center; color:var(--grey);">
+      <div style="font-size:1.5rem; margin-bottom:10px;">⏳</div>
+      <div>Cargando fotos... puede tardar unos segundos.</div>
     </div>`;
-  }).join('');
 
-  grid.querySelectorAll('[data-delphoto]').forEach(btn => {
-    btn.addEventListener('click', () => deletePhoto(folderId, btn.dataset.delphoto));
-  });
+  // Scroll inmediato y también con delay por si el DOM tarda en actualizarse
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+
+  try{
+    const snap = await db.collection('folders').doc(folderId).collection('photos').orderBy('createdAt','asc').get();
+    const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if(photos.length === 0){
+      grid.innerHTML = `<p style="color:var(--grey); padding:20px;">Este álbum no tiene fotos todavía.</p>`;
+      return;
+    }
+
+    grid.innerHTML = photos.map((p, i) => {
+      const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
+      return `
+      <div class="photo-slide">
+        <span class="notch"></span>
+        <div class="photo-admin-actions">
+          <button class="icon-btn" data-delphoto="${p.id}" aria-label="Eliminar foto">${ICON_TRASH}</button>
+        </div>
+        <div class="frame"><img src="${p.url}" loading="lazy"></div>
+        <span class="idx" title="${displayName}">${displayName}</span>
+      </div>`;
+    }).join('');
+
+    grid.querySelectorAll('[data-delphoto]').forEach(btn => {
+      btn.addEventListener('click', () => deletePhoto(folderId, btn.dataset.delphoto));
+    });
+
+    showToast(`${photos.length} foto${photos.length>1?'s':''} cargada${photos.length>1?'s':''}.`);
+
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; padding:20px; color:var(--danger);">
+        ⚠️ Error al cargar las fotos. Revisá la conexión a internet o las reglas de Firestore e intentá de nuevo.
+      </div>`;
+  }
 }
 
 document.getElementById('closeAdminPhotos').addEventListener('click', () => {
