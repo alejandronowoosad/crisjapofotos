@@ -15,6 +15,7 @@
 <style>
 
   :root{
+    --mountain-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 900'%3E%3Crect width='1400' height='900' fill='%230B0B0C'/%3E%3C!-- cielo con degradado --%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23111108'/%3E%3Cstop offset='100%25' stop-color='%230B0B0C'/%3E%3C/linearGradient%3E%3ClinearGradient id='glow' x1='0.5' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C9A24B' stop-opacity='0.12'/%3E%3Cstop offset='100%25' stop-color='%23C9A24B' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1400' height='900' fill='url(%23sky)'/%3E%3Crect width='1400' height='900' fill='url(%23glow)'/%3E%3C!-- montañas traseras --%3E%3Cpolygon points='0,900 200,420 400,900' fill='%23161400' opacity='0.9'/%3E%3Cpolygon points='250,900 550,280 850,900' fill='%231a1800' opacity='0.95'/%3E%3Cpolygon points='600,900 900,350 1200,900' fill='%23141200' opacity='0.9'/%3E%3Cpolygon points='900,900 1150,400 1400,900' fill='%23161400' opacity='0.85'/%3E%3C!-- montaña principal grande --%3E%3Cpolygon points='100,900 500,150 900,900' fill='%231e1c00' opacity='1'/%3E%3Cpolygon points='550,900 850,200 1150,900' fill='%23181600' opacity='1'/%3E%3C!-- nieve en los picos --%3E%3Cpolygon points='500,150 480,220 520,220' fill='%23C9A24B' opacity='0.35'/%3E%3Cpolygon points='850,200 828,275 872,275' fill='%23C9A24B' opacity='0.3'/%3E%3Cpolygon points='550,280 535,330 565,330' fill='%23C9A24B' opacity='0.25'/%3E%3C!-- estrellas/detalles --%3E%3Ccircle cx='200' cy='80' r='1.5' fill='%23C9A24B' opacity='0.4'/%3E%3Ccircle cx='700' cy='50' r='1' fill='%23C9A24B' opacity='0.3'/%3E%3Ccircle cx='1100' cy='100' r='1.5' fill='%23C9A24B' opacity='0.35'/%3E%3Ccircle cx='350' cy='130' r='1' fill='%23C9A24B' opacity='0.25'/%3E%3Ccircle cx='1050' cy='60' r='1' fill='%23C9A24B' opacity='0.3'/%3E%3C/svg%3E");
     --black:#0B0B0C;
     --panel:#161617;
     --panel-2:#1D1D1F;
@@ -154,12 +155,40 @@
 
   /* ===================== LAYOUT ===================== */
   .page{padding:120px 6vw 100px; max-width:1300px; margin:0 auto; min-height:100vh;}
+
+  /* Fondo de montaña solo en la pantalla de álbumes */
+  #screenGallery{
+    max-width:none;
+    background: var(--mountain-bg) center top / cover no-repeat fixed;
+    padding-left:6vw; padding-right:6vw;
+    position:relative;
+  }
+  #screenGallery::before{
+    content:'';
+    position:fixed; inset:0;
+    background:rgba(11,11,12,0.78);
+    pointer-events:none;
+    z-index:0;
+  }
+  #screenGallery .section-head,
+  #screenGallery .albums-grid{
+    position:relative; z-index:1;
+  }
   .center-page{
     min-height:100vh; display:flex; align-items:center; justify-content:center; padding:6vw;
   }
   .login-page{
     gap:60px; flex-wrap:wrap;
+    background: var(--mountain-bg) center center / cover no-repeat fixed;
+    position:relative;
   }
+  .login-page::before{
+    content:'';
+    position:absolute; inset:0;
+    background:rgba(11,11,12,0.72);
+    pointer-events:none;
+  }
+  .login-page > *{ position:relative; z-index:1; }
   .login-tutorial{
     flex:1; min-width:280px; max-width:420px;
   }
@@ -2004,56 +2033,230 @@ document.getElementById('fileInput').addEventListener('change', async (e) => {
   }
   if(files.length === 0) return;
 
-  const progressBar = document.getElementById('uploadProgress');
-  const progressFill = document.getElementById('uploadProgressFill');
-  progressBar.style.display = 'block';
-  progressFill.style.width = '0%';
-
-  const folder = folders.find(f => f.id === folderId);
-  let firstUploadedUrl = null;
-
-  for(let i=0; i<files.length; i++){
-    const file = files[i];
-    try{
-      const watermarked = await applyWatermark(file);
-      await db.collection('folders').doc(folderId).collection('photos').add({
-        url: watermarked,
-        fileName: file.name,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      if(i === 0) firstUploadedUrl = watermarked;
-    }catch(err){
-      console.error(err);
-      showToast("Hubo un problema subiendo una foto.");
-    }
-    progressFill.style.width = `${Math.round(((i+1)/files.length)*100)}%`;
-  }
-
-  // Si el álbum todavía no tiene portada, usamos automáticamente la primera foto subida.
-  if(folder && !folder.coverUrl && firstUploadedUrl){
-    await db.collection('folders').doc(folderId).update({ coverUrl: firstUploadedUrl });
-  }
-
-  setTimeout(()=>{ progressBar.style.display = 'none'; }, 700);
+  // Mostrar pantalla de revisión antes de subir
   e.target.value = '';
-  showToast(`${files.length} foto(s) subida(s) con marca de agua.`);
-  await loadFoldersForClient().catch(()=>{}); // refresca conteos si corresponde
-  await loadFoldersForAdmin();
-  if(currentFolderId === folderId){
-    await openAdminFolderPhotos(folderId);
-  }
+  await showUploadReview(files, folderId);
 });
+
+/* =========================================================
+   PANTALLA DE REVISIÓN DE FOTOS ANTES DE SUBIR
+   Muestra miniaturas con el nombre propuesto (basado en EXIF
+   o en el nombre original). El admin puede editar cada nombre
+   antes de confirmar la subida.
+========================================================= */
+async function showUploadReview(files, folderId){
+  const folder = folders.find(f => f.id === folderId);
+
+  // Crear overlay de revisión
+  const overlay = document.createElement('div');
+  overlay.id = 'uploadReviewOverlay';
+  overlay.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:700;
+    display:flex; flex-direction:column; overflow:hidden;
+  `;
+
+  // Procesar archivos: leer EXIF y generar previsualizaciones
+  const items = await Promise.all(files.map(async (file, idx) => {
+    const preview = await readFileAsDataUrl(file);
+    const exifDate = await readExifDate(file);
+    const suggestedName = exifDate
+      ? `FOTO_${exifDate}.jpg`
+      : file.name; // si no hay EXIF, usa el nombre que tiene
+    return { file, preview, suggestedName, idx };
+  }));
+
+  overlay.innerHTML = `
+    <div style="padding:22px 26px 14px; border-bottom:1px solid rgba(201,162,75,0.2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+      <div>
+        <div style="font-family:'Fraunces',serif; font-size:1.3rem; color:#E8E3D8;">Revisá los nombres antes de subir</div>
+        <div style="font-size:0.8rem; color:#7A7568; margin-top:4px;">${items.length} foto${items.length>1?'s':''} · Álbum: <strong style="color:#C9A24B;">${folder.name}</strong></div>
+      </div>
+      <button id="cancelUpload" style="color:#7A7568; font-size:1.5rem; padding:4px 10px;">×</button>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:20px 26px;">
+      <div style="font-size:0.8rem; color:#7A7568; margin-bottom:16px;">
+        💡 Cada foto recibe un número correlativo visible en la imagen. El cliente te va a pedir 
+        "la FOTO_003" y vos la encontrás contando desde el principio del álbum.
+      </div>
+      <div id="reviewGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;">
+        ${items.map((item, i) => `
+          <div style="background:#161617; border:1px solid rgba(201,162,75,0.2); padding:8px; border-radius:4px; text-align:center;">
+            <img src="${item.preview}" style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:2px; margin-bottom:6px;">
+            <div style="font-size:0.82rem; color:#C9A24B; font-weight:700; font-family:'Inter',sans-serif;">
+              FOTO_${String(i+1).padStart(3,'0')}
+            </div>
+            <div style="font-size:0.68rem; color:#7A7568; margin-top:2px;">(número final puede variar si ya hay fotos)</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div style="padding:16px 26px 22px; border-top:1px solid rgba(201,162,75,0.2); flex-shrink:0; display:flex; gap:12px; align-items:center;">
+      <button id="confirmUpload" style="flex:1; background:#C9A24B; color:#0B0B0C; border:none; padding:14px; font-size:0.82rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px;">
+        ✓ Confirmar y subir ${items.length} foto${items.length>1?'s':''}
+      </button>
+      <div id="uploadStatusMsg" style="font-size:0.78rem; color:#7A7568;"></div>
+    </div>
+    <div id="reviewProgressBar" style="height:3px; background:#C9A24B; width:0%; transition:width 0.2s; position:absolute; bottom:0; left:0;"></div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('cancelUpload').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  document.getElementById('confirmUpload').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmUpload');
+    btn.disabled = true;
+    btn.textContent = 'Subiendo...';
+    const statusMsg = document.getElementById('uploadStatusMsg');
+    const progressBar = document.getElementById('reviewProgressBar');
+
+    // Contar fotos existentes en el álbum para continuar la numeración
+    let existingCount = 0;
+    try{
+      const existingSnap = await db.collection('folders').doc(folderId).collection('photos').get();
+      existingCount = existingSnap.size;
+    }catch(e){ existingCount = 0; }
+
+    let firstUploadedUrl = null;
+
+    for(let i=0; i<items.length; i++){
+      const item = items[i];
+      const photoNumber = existingCount + i + 1; // número correlativo real
+      const displayNumber = String(photoNumber).padStart(3, '0'); // "001", "002"...
+      const fileName = `FOTO_${displayNumber}`; // nombre simple y claro
+
+      statusMsg.textContent = `Subiendo ${i+1} de ${items.length}... (FOTO_${displayNumber})`;
+      progressBar.style.width = `${Math.round((i/items.length)*100)}%`;
+
+      try{
+        const watermarked = await applyWatermarkWithNumber(item.file, photoNumber);
+        await db.collection('folders').doc(folderId).collection('photos').add({
+          url: watermarked,
+          fileName: fileName,
+          photoNumber: photoNumber,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        if(i === 0) firstUploadedUrl = watermarked;
+      }catch(err){
+        console.error(err);
+        statusMsg.style.color = '#d96a5a';
+        statusMsg.textContent = `Error en foto ${i+1}. Continuando...`;
+        await new Promise(r => setTimeout(r, 1000));
+        statusMsg.style.color = '#7A7568';
+      }
+      progressBar.style.width = `${Math.round(((i+1)/items.length)*100)}%`;
+    }
+
+    // Auto-portada si el álbum no tiene una
+    if(folder && !folder.coverUrl && firstUploadedUrl){
+      await db.collection('folders').doc(folderId).update({ coverUrl: firstUploadedUrl }).catch(()=>{});
+    }
+
+    progressBar.style.width = '100%';
+    statusMsg.textContent = '¡Listo!';
+
+    setTimeout(async () => {
+      document.body.removeChild(overlay);
+      showToast(`${items.length} foto${items.length>1?'s':''} subida${items.length>1?'s':''} correctamente.`);
+      await loadFoldersForAdmin();
+      if(currentFolderId === folderId){
+        await openAdminFolderPhotos(folderId);
+      }
+    }, 600);
+  });
+}
+
+/* Lee un archivo y devuelve su data URL (para previsualización) */
+function readFileAsDataUrl(file){
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+/* Extrae la fecha/hora de la foto desde los datos EXIF.
+   Devuelve una string tipo "20260713_143022" o null si no hay EXIF. */
+function readExifDate(file){
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const view = new DataView(e.target.result);
+        // Verificar que es JPEG
+        if(view.getUint16(0) !== 0xFFD8){ resolve(null); return; }
+
+        let offset = 2;
+        while(offset < view.byteLength - 2){
+          const marker = view.getUint16(offset);
+          offset += 2;
+          if(marker === 0xFFE1){ // APP1 — acá está el EXIF
+            const exifLength = view.getUint16(offset);
+            const exifData = new DataView(e.target.result, offset + 2, exifLength - 2);
+
+            // Buscar "Exif\0\0"
+            if(String.fromCharCode(...new Uint8Array(e.target.result, offset+2, 6)) !== 'Exif\0\0'){
+              resolve(null); return;
+            }
+
+            const tiffStart = offset + 8;
+            const tiffView = new DataView(e.target.result, tiffStart);
+            const littleEndian = tiffView.getUint16(0) === 0x4949;
+            const ifdOffset = tiffView.getUint32(4, littleEndian);
+            const numEntries = tiffView.getUint16(ifdOffset, littleEndian);
+
+            for(let i=0; i<numEntries; i++){
+              const entryOffset = ifdOffset + 2 + i*12;
+              const tag = tiffView.getUint16(entryOffset, littleEndian);
+              // Tag 0x0132 = DateTime, 0x9003 = DateTimeOriginal (mejor)
+              if(tag === 0x9003 || tag === 0x0132){
+                const valueOffset = tiffView.getUint32(entryOffset + 8, littleEndian);
+                let dateStr = '';
+                for(let j=0; j<19; j++){
+                  const c = tiffView.getUint8(valueOffset + j);
+                  if(c === 0) break;
+                  dateStr += String.fromCharCode(c);
+                }
+                // dateStr = "2026:07:13 14:30:22"
+                const clean = dateStr.replace(/[: ]/g, '').replace(/(\d{8})(\d{6})/, '$1_$2');
+                resolve(clean || null);
+                return;
+              }
+            }
+            resolve(null); return;
+          }
+          const segmentLength = view.getUint16(offset);
+          offset += segmentLength;
+        }
+        resolve(null);
+      }catch(err){
+        resolve(null);
+      }
+    };
+    reader.onerror = () => resolve(null);
+    // Solo leemos los primeros 128KB — suficiente para el EXIF, mucho más rápido
+    reader.readAsArrayBuffer(file.slice(0, 131072));
+  });
+}
+
 
 /* Aplica marca de agua repetida en diagonal usando Canvas,
    redimensiona para no generar archivos gigantes, y devuelve
    un data URL (base64) listo para guardar en Firestore. */
 function applyWatermark(file){
+  return applyWatermarkWithNumber(file, null);
+}
+
+/* Aplica marca de agua + número de foto en esquina inferior derecha.
+   El número es grande, claro y fácil de leer para identificar la foto. */
+function applyWatermarkWithNumber(file, photoNumber){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        // Redimensionar para que no pese demasiado (máx 1400px de lado mayor)
         const MAX_SIDE = 1400;
         let { width, height } = img;
         if(width > height && width > MAX_SIDE){
@@ -2070,25 +2273,52 @@ function applyWatermark(file){
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Marca de agua repetida en diagonal — más visible y más ancha
+        // Marca de agua diagonal (texto repetido)
         ctx.save();
         ctx.fillStyle = "rgba(232, 227, 216, 0.38)";
         ctx.font = `700 ${Math.max(16, Math.round(width/18))}px Inter, sans-serif`;
         ctx.textBaseline = "middle";
         ctx.translate(width/2, height/2);
         ctx.rotate(-Math.PI/6);
-
         const text = WATERMARK_TEXT;
-        const stepX = ctx.measureText(text).width + 130; // más espacio horizontal
-        const stepY = Math.max(120, Math.round(height/3.5)); // más espacio vertical
+        const stepX = ctx.measureText(text).width + 130;
+        const stepY = Math.max(120, Math.round(height/3.5));
         const diag = Math.sqrt(width*width + height*height);
-
         for(let y = -diag/2; y < diag/2; y += stepY){
           for(let x = -diag/2; x < diag/2; x += stepX){
             ctx.fillText(text, x, y);
           }
         }
         ctx.restore();
+
+        // Número de foto en esquina inferior derecha — grande y legible
+        if(photoNumber !== null){
+          const numStr = String(photoNumber).padStart(3, '0');
+          const fontSize = Math.max(28, Math.round(width / 22));
+          const padding = Math.round(fontSize * 0.6);
+
+          ctx.save();
+          ctx.font = `900 ${fontSize}px Inter, sans-serif`;
+          ctx.textBaseline = 'bottom';
+          ctx.textAlign = 'right';
+
+          const textW = ctx.measureText(numStr).width;
+          const boxW = textW + padding * 2;
+          const boxH = fontSize + padding * 1.4;
+          const bx = width - 8;
+          const by = height - 8;
+
+          // Fondo negro semitransparente para que se lea bien sobre cualquier foto
+          ctx.fillStyle = 'rgba(0,0,0,0.65)';
+          ctx.beginPath();
+          ctx.roundRect(bx - boxW, by - boxH, boxW, boxH, 4);
+          ctx.fill();
+
+          // Número en dorado
+          ctx.fillStyle = '#C9A24B';
+          ctx.fillText(numStr, bx - padding, by - padding * 0.7);
+          ctx.restore();
+        }
 
         resolve(canvas.toDataURL('image/jpeg', 0.82));
       };
@@ -2119,118 +2349,4 @@ function resizeImageToDataUrl(file, maxSide){
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = reject;
-      img.src = ev.target.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-/* =========================================================
-   ADMIN: CLIENTES DEL DÍA
-========================================================= */
-document.getElementById('btnAddClient').addEventListener('click', async () => {
-  const name = document.getElementById('newClientName').value.trim();
-  const phone = document.getElementById('newClientPhone').value.trim().replace(/\D/g,'');
-
-  if(!name || !phone){
-    showToast("Completá nombre y teléfono.");
-    return;
-  }
-
-  await db.collection('clientes').add({
-    name, phone, status: 'pending',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  document.getElementById('newClientName').value = '';
-  document.getElementById('newClientPhone').value = '';
-  showToast("Cliente agregado.");
-  await loadClientsForAdmin();
-});
-
-async function loadClientsForAdmin(){
-  const snap = await db.collection('clientes').orderBy('createdAt','desc').get();
-  const clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  const list = document.getElementById('clientsList');
-
-  if(clients.length === 0){
-    list.innerHTML = `<p style="color:var(--grey); font-size:0.88rem;">Todavía no agregaste clientes.</p>`;
-    return;
-  }
-
-  list.innerHTML = clients.map(c => `
-    <div class="client-row">
-      <div class="info">
-        <strong>${c.name}</strong>
-        <small>+${c.phone}</small>
-      </div>
-      <span class="status-pill ${c.status === 'notified' ? 'notified' : 'pending'}">
-        ${c.status === 'notified' ? 'Avisado' : 'Pendiente'}
-      </span>
-      <div class="actions">
-        <button class="btn btn-outline btn-sm" data-notify="${c.id}" data-phone="${c.phone}" data-name="${c.name}">Avisar fotos listas</button>
-        <button class="btn btn-outline btn-sm" data-remind="${c.id}" data-phone="${c.phone}" data-name="${c.name}">Recordatorio</button>
-        <button class="icon-btn" data-delclient="${c.id}" aria-label="Eliminar cliente">${ICON_TRASH}</button>
-      </div>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('[data-notify]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const phone = btn.dataset.phone;
-      const name = btn.dataset.name;
-      const msg = isBrazilPhone(phone)
-        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Aviso que suas fotos de hoje já estão na galeria. Você pode entrar, escolher suas favoritas e me mandar a seleção por este mesmo WhatsApp.\n\n📷 Entre aqui: ${APP_URL}`
-        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-      await db.collection('clientes').doc(btn.dataset.notify).update({ status: 'notified' });
-      await loadClientsForAdmin();
-    });
-  });
-
-  list.querySelectorAll('[data-remind]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const phone = btn.dataset.phone;
-      const name = btn.dataset.name;
-      const msg = isBrazilPhone(phone)
-        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Lembrando que suas fotos continuam disponíveis na galeria para você escolher suas favoritas. Qualquer dúvida, me avise!\n\n📷 Entre aqui: ${APP_URL}`
-        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-    });
-  });
-
-  list.querySelectorAll('[data-delclient]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if(!confirm("¿Eliminar este cliente de la lista?")) return;
-      await db.collection('clientes').doc(btn.dataset.delclient).delete();
-      await loadClientsForAdmin();
-    });
-  });
-}
-
-/* =========================================================
-   INIT
-========================================================= */
-(async function init(){
-  applyTranslations();
-  await loadPricing();
-  loadClientSession();
-  if(currentClient){
-    updateNavForClient();
-    loadFoldersForClient();
-    showScreen('screenGallery');
-    document.getElementById('favLauncher').classList.remove('hidden');
-    renderDrawer();
-  } else {
-    showScreen('screenClientLogin');
-  }
-})();
-</script>
-
-</body>
-</html>
+        canvas.get
