@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crisjapo Fotografías</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK (versión compat, simple de usar sin build tools) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+
+  :root{
+    --mountain-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 900'%3E%3Crect width='1400' height='900' fill='%230B0B0C'/%3E%3C!-- cielo con degradado --%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23111108'/%3E%3Cstop offset='100%25' stop-color='%230B0B0C'/%3E%3C/linearGradient%3E%3ClinearGradient id='glow' x1='0.5' y1='0' x2='0.5' y2='1'%3E%3Cstop offset='0%25' stop-color='%23C9A24B' stop-opacity='0.12'/%3E%3Cstop offset='100%25' stop-color='%23C9A24B' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1400' height='900' fill='url(%23sky)'/%3E%3Crect width='1400' height='900' fill='url(%23glow)'/%3E%3C!-- montañas traseras --%3E%3Cpolygon points='0,900 200,420 400,900' fill='%23161400' opacity='0.9'/%3E%3Cpolygon points='250,900 550,280 850,900' fill='%231a1800' opacity='0.95'/%3E%3Cpolygon points='600,900 900,350 1200,900' fill='%23141200' opacity='0.9'/%3E%3Cpolygon points='900,900 1150,400 1400,900' fill='%23161400' opacity='0.85'/%3E%3C!-- montaña principal grande --%3E%3Cpolygon points='100,900 500,150 900,900' fill='%231e1c00' opacity='1'/%3E%3Cpolygon points='550,900 850,200 1150,900' fill='%23181600' opacity='1'/%3E%3C!-- nieve en los picos --%3E%3Cpolygon points='500,150 480,220 520,220' fill='%23C9A24B' opacity='0.35'/%3E%3Cpolygon points='850,200 828,275 872,275' fill='%23C9A24B' opacity='0.3'/%3E%3Cpolygon points='550,280 535,330 565,330' fill='%23C9A24B' opacity='0.25'/%3E%3C!-- estrellas/detalles --%3E%3Ccircle cx='200' cy='80' r='1.5' fill='%23C9A24B' opacity='0.4'/%3E%3Ccircle cx='700' cy='50' r='1' fill='%23C9A24B' opacity='0.3'/%3E%3Ccircle cx='1100' cy='100' r='1.5' fill='%23C9A24B' opacity='0.35'/%3E%3Ccircle cx='350' cy='130' r='1' fill='%23C9A24B' opacity='0.25'/%3E%3Ccircle cx='1050' cy='60' r='1' fill='%23C9A24B' opacity='0.3'/%3E%3C/svg%3E");
+    --black:#0B0B0C;
+    --panel:#161617;
+    --panel-2:#1D1D1F;
+    --gold:#C9A24B;
+    --gold-soft:#9C8347;
+    --bone:#E8E3D8;
+    --grey:#7A7568;
+    --line: rgba(201,162,75,0.22);
+    --danger:#d96a5a;
+    --radius: 2px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--black);
+    color:var(--bone);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  ::selection{background:var(--gold);color:var(--black);}
+  a{color:inherit;text-decoration:none;}
+  img{display:block;max-width:100%;}
+  button, input{font-family:inherit;}
+  button{cursor:pointer;border:none;background:none;color:inherit;}
+  input{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--bone);
+    padding:13px 16px;
+    font-size:0.92rem;
+    border-radius:var(--radius);
+    width:100%;
+  }
+  input::placeholder{color:var(--grey);}
+  input:focus{outline:none; border-color:var(--gold-soft);}
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  h1,h2,h3{font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em;}
+  .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:600;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:14px 28px;
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:600;
+    border-radius:var(--radius);
+    transition:all 0.2s ease;
+  }
+  .btn-gold{background:var(--gold); color:var(--black);}
+  .btn-gold:hover{background:#dcb35c;}
+  .btn-gold:disabled{opacity:0.4; cursor:not-allowed;}
+  .btn-outline{border:1px solid var(--line); color:var(--bone);}
+  .btn-outline:hover{border-color:var(--gold); color:var(--gold);}
+  .btn-danger{border:1px solid var(--danger); color:var(--danger);}
+  .btn-danger:hover{background:var(--danger); color:var(--black);}
+  .btn-sm{padding:9px 16px; font-size:0.7rem;}
+  .hidden{display:none !important;}
+
+  /* ===================== NAV ===================== */
+  .nav{
+    position:fixed; top:0; left:0; right:0; z-index:200;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 5vw;
+    background:linear-gradient(to bottom, rgba(11,11,12,0.96), rgba(11,11,12,0.7));
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Fraunces', serif;
+    font-size:1.1rem; font-weight:500; letter-spacing:0.02em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .brand .mark{color:var(--gold); font-style:italic; font-weight:300;}
+  .nav-right{display:flex; align-items:center; gap:16px; font-size:0.78rem;}
+  .nav-user{color:var(--grey);}
+  .nav-user strong{color:var(--bone);}
+
+  .user-pill{
+    display:flex; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:24px; padding:5px 12px 5px 6px;
+  }
+  .user-initial{
+    width:28px; height:28px; border-radius:50%;
+    background:var(--gold); color:var(--black);
+    font-size:0.78rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .user-pill strong{ font-size:0.82rem; color:var(--bone); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav-logout-btn{
+    font-size:0.72rem; color:var(--grey); text-decoration:underline;
+    padding:0; transition:color 0.2s;
+  }
+  .nav-logout-btn:hover{ color:var(--danger); }
+  .nav-link{
+    color:var(--grey); letter-spacing:0.06em; text-transform:uppercase; font-size:0.72rem;
+    transition:color 0.2s;
+  }
+  .nav-link:hover{color:var(--gold);}
+
+  .nav-ig-link{
+    display:flex; align-items:center; justify-content:center;
+    color:var(--grey); transition:color 0.2s;
+    padding:4px;
+  }
+  .nav-ig-link:hover{ color:var(--gold); }
+
+  .lang-switch{
+    display:flex; align-items:center; gap:4px; border:1px solid var(--line);
+    border-radius:20px; padding:4px; background:var(--panel-2);
+  }
+  .lang-btn{
+    display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:16px;
+    font-size:0.72rem; font-weight:600; color:var(--grey); transition:all 0.2s;
+  }
+  .lang-btn.active{background:var(--gold); color:var(--black);}
+  .lang-btn .flag{font-size:0.95rem; line-height:1;}
+
+  /* ===================== LAYOUT ===================== */
+  .page{padding:120px 6vw 100px; max-width:1300px; margin:0 auto; min-height:100vh;}
+
+  /* Fondo de montaña solo en la pantalla de álbumes */
+  #screenGallery{
+    max-width:none;
+    background: var(--mountain-bg) center top / cover no-repeat fixed;
+    padding-left:6vw; padding-right:6vw;
+    position:relative;
+  }
+  #screenGallery::before{
+    content:'';
+    position:fixed; inset:0;
+    background:rgba(11,11,12,0.78);
+    pointer-events:none;
+    z-index:0;
+  }
+  #screenGallery .section-head,
+  #screenGallery .albums-grid{
+    position:relative; z-index:1;
+  }
+  .center-page{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:6vw;
+  }
+  .login-page{
+    gap:60px; flex-wrap:wrap;
+    background: var(--mountain-bg) center center / cover no-repeat fixed;
+    position:relative;
+  }
+  .login-page::before{
+    content:'';
+    position:absolute; inset:0;
+    background:rgba(11,11,12,0.72);
+    pointer-events:none;
+  }
+  .login-page > *{ position:relative; z-index:1; }
+  .login-tutorial{
+    flex:1; min-width:280px; max-width:420px;
+  }
+  .tutorial-title{
+    font-size:1.6rem; margin-bottom:10px; color:var(--bone);
+  }
+  .tutorial-intro{
+    color:var(--grey); font-size:0.9rem; line-height:1.65; margin-bottom:32px;
+  }
+  .tutorial-steps{ display:flex; flex-direction:column; gap:22px; }
+  .tutorial-step{
+    display:flex; gap:16px; align-items:flex-start;
+  }
+  .step-num{
+    width:32px; height:32px; border-radius:50%; border:1px solid var(--gold);
+    color:var(--gold); font-size:0.85rem; font-weight:700; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif;
+  }
+  .step-body{ display:flex; flex-direction:column; gap:4px; }
+  .step-body strong{ color:var(--bone); font-size:0.92rem; }
+  .step-body span{ color:var(--grey); font-size:0.82rem; line-height:1.5; }
+  @media (max-width:860px){
+    .login-page{ flex-direction:column; gap:36px; }
+    .login-tutorial{ max-width:100%; }
+  }
+
+  .section-head{margin-bottom:48px; max-width:640px;}
+  .section-head h2{margin-top:12px; font-size:clamp(1.9rem, 4vw, 2.8rem); color:var(--bone);}
+  .section-head p{margin-top:14px; color:var(--grey); line-height:1.7; font-size:0.95rem;}
+
+  /* ===================== AUTH CARDS ===================== */
+  .auth-card{
+    width:100%; max-width:420px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:44px 36px;
+  }
+  .auth-card .eyebrow{display:block; margin-bottom:10px;}
+  .auth-card h1{font-size:1.9rem; margin-bottom:8px;}
+  .auth-card .sub{color:var(--grey); font-size:0.88rem; margin-bottom:30px; line-height:1.6;}
+
+  .brand-logo{display:flex; justify-content:center; margin-bottom:22px;}
+  .brand-icon{width:108px; height:108px; overflow:visible;}
+  .brand-icon .bi-ring{
+    fill:none; stroke:var(--gold-soft); stroke-width:1; opacity:0.45;
+  }
+  .brand-icon .bi-mountains{
+    fill:none; stroke:var(--gold-soft); stroke-width:1.4; stroke-linejoin:round; opacity:0.8;
+  }
+  .brand-icon .bi-peak-snow{
+    fill:var(--gold-soft); opacity:0.5;
+  }
+  .brand-icon .bi-pine{
+    fill:none; stroke:var(--gold); stroke-width:1.3; stroke-linejoin:round;
+  }
+  .brand-icon .bi-camera-body{
+    fill:var(--black); stroke:var(--gold); stroke-width:1.6; stroke-linejoin:round;
+  }
+  .brand-icon .bi-camera-lens{
+    fill:var(--black); stroke:var(--gold); stroke-width:1.4;
+  }
+  .brand-icon .bi-camera-lens-inner{
+    fill:none; stroke:var(--gold-soft); stroke-width:0.8;
+  }
+  .brand-icon .bi-camera-flash{
+    fill:var(--gold);
+  }
+  .brand-icon .bi-shutter{
+    fill:var(--gold); opacity:0.9;
+    transform-origin:54px 64px;
+    animation:shutterBlink 4.5s ease-in-out infinite;
+  }
+  @keyframes shutterBlink{
+    0%, 88%, 100%{ opacity:0.9; transform:scale(1); }
+    92%{ opacity:0.3; transform:scale(0.85); }
+    96%{ opacity:0.9; transform:scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .brand-icon .bi-shutter{ animation:none; }
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--grey); margin-bottom:7px;
+  }
+  .auth-card .btn{width:100%; margin-top:8px;}
+  .auth-switch{margin-top:22px; text-align:center; font-size:0.82rem; color:var(--grey);}
+  .auth-switch button{color:var(--gold); text-decoration:underline;}
+  .form-error{
+    color:var(--danger); font-size:0.8rem; margin-top:10px; display:none;
+  }
+
+  /* ===================== ALBUMS GRID (cliente) ===================== */
+  .albums-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+  }
+  @media (max-width:980px){ .albums-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:580px){ .albums-grid{grid-template-columns:repeat(2,1fr);} }
+
+  .album-card{
+    position:relative; overflow:hidden; cursor:pointer; display:block;
+    aspect-ratio:3/4; border-radius:6px;
+    background:linear-gradient(160deg, #111108 0%, #0d0d05 60%, #080800 100%);
+    border:1px solid rgba(255,255,255,0.07);
+    transition:transform 0.22s, box-shadow 0.22s;
+  }
+  .album-card:hover{ transform:translateY(-4px) scale(1.02); box-shadow:0 12px 32px rgba(0,0,0,0.5); }
+
+  /* Escena de montañas dibujada con SVG inline como fondo */
+  .album-bg-scene{
+    position:absolute; bottom:0; left:0; right:0; height:65%;
+    opacity:0.22;
+  }
+
+  /* Copos de nieve */
+  .album-snowflake{
+    position:absolute; color:var(--gold); opacity:0.75; font-size:1.1rem; user-select:none;
+  }
+  .album-snowflake.s1{ top:12px; left:14px; font-size:1rem; opacity:0.55; }
+  .album-snowflake.s2{ top:18px; right:20px; font-size:0.75rem; opacity:0.65; }
+
+  /* Contenido de la tarjeta */
+  .album-card-content{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:flex-end; padding:14px 14px 16px;
+  }
+  .album-card-name{
+    font-family:'Fraunces', serif; font-weight:600; font-size:1.05rem;
+    color:#ffffff; line-height:1.2; letter-spacing:0.03em;
+    text-transform:uppercase; margin-bottom:5px;
+    text-shadow:0 1px 4px rgba(0,0,0,0.6);
+  }
+  .album-card-date{
+    font-size:0.78rem; font-weight:600; color:var(--gold);
+    letter-spacing:0.04em;
+  }
+  .album-frame-no{ display:none; } /* ya no se usa */
+  .empty-state{
+    grid-column:1/-1; padding:80px 20px; text-align:center; color:var(--grey);
+    background:var(--black);
+  }
+
+  /* ===================== PHOTO GRID ===================== */
+  .back-link{
+    display:inline-flex; align-items:center; gap:8px; font-size:0.78rem; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--grey); margin-bottom:28px; transition:color 0.2s;
+  }
+  .back-link:hover{color:var(--gold);}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-top:36px;}
+  @media (max-width:980px){ .photo-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:680px){ .photo-grid{grid-template-columns:repeat(2,1fr);} }
+
+  .photo-slide{
+    position:relative; background:var(--panel); border:1px solid var(--line);
+    padding:10px 10px 24px; transition:border-color 0.2s, transform 0.2s;
+  }
+  .photo-slide.selectable:hover{border-color:var(--gold-soft); transform:translateY(-3px); cursor:pointer;}
+  .photo-slide .notch{
+    position:absolute; top:0; left:50%; transform:translate(-50%,-50%);
+    width:18px; height:6px; background:var(--black); border:1px solid var(--line);
+  }
+  .photo-slide .frame{
+    aspect-ratio:1/1; background:var(--panel-2); display:flex; align-items:center;
+    justify-content:center; overflow:hidden; position:relative;
+  }
+  .photo-slide .frame img{width:100%;height:100%;object-fit:cover;}
+  .photo-slide .frame svg{width:34%; opacity:0.35;}
+  .photo-slide .idx{
+    position:absolute; bottom:8px; left:10px; right:10px; font-size:0.6rem; color:var(--grey);
+    letter-spacing:0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .fav-toggle{
+    position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%;
+    background:rgba(11,11,12,0.7); border:1px solid var(--line); display:flex;
+    align-items:center; justify-content:center; z-index:5; transition:all 0.2s;
+  }
+  .fav-toggle svg{width:16px; height:16px; stroke:var(--bone); fill:none; transition:all 0.2s;}
+  .fav-toggle.active{background:var(--gold); border-color:var(--gold);}
+  .fav-toggle.active svg{fill:var(--black); stroke:var(--black);}
+
+  .photo-admin-actions{
+    position:absolute; top:14px; right:14px; display:flex; gap:6px; z-index:5;
+  }
+  .icon-btn{
+    width:30px; height:30px; border-radius:50%; background:rgba(11,11,12,0.75);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--danger); color:var(--danger);}
+  .icon-btn svg{width:14px;height:14px;}
+
+  /* ===================== FAVORITES DRAWER ===================== */
+  .fav-launcher{
+    position:fixed; bottom:26px; right:26px; z-index:300; width:62px; height:62px;
+    border-radius:50%; background:var(--gold); color:var(--black); display:flex;
+    align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(0,0,0,0.45);
+    transition:transform 0.2s;
+  }
+  .fav-launcher:hover{transform:scale(1.06);}
+  .fav-launcher svg{width:22px;height:22px;}
+  .fav-launcher .badge{
+    position:absolute; top:-6px; right:-6px; background:var(--black); color:var(--gold);
+    border:1px solid var(--gold); font-size:0.68rem; font-weight:700; width:22px;height:22px;
+    border-radius:50%; display:flex;align-items:center;justify-content:center;
+  }
+  .drawer-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:400;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .drawer-overlay.open{opacity:1; pointer-events:all;}
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw); background:var(--panel);
+    border-left:1px solid var(--line); z-index:401; transform:translateX(100%);
+    transition:transform 0.35s cubic-bezier(.2,.8,.2,1); display:flex; flex-direction:column;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{
+    padding:26px 24px 18px; border-bottom:1px solid var(--line); display:flex;
+    justify-content:space-between; align-items:flex-start;
+  }
+  .drawer-head h3{font-size:1.3rem;}
+  .drawer-head p{color:var(--grey); font-size:0.8rem; margin-top:6px;}
+  .drawer-close{font-size:1.4rem; color:var(--grey); line-height:1;}
+  .drawer-close:hover{color:var(--gold);}
+  .drawer-list{flex:1; overflow-y:auto; padding:16px 24px; display:flex; flex-direction:column; gap:10px;}
+  .drawer-empty{color:var(--grey); font-size:0.86rem; text-align:center; margin-top:60px; line-height:1.7;}
+  .drawer-item{display:flex; align-items:center; gap:12px; padding:9px; border:1px solid var(--line);}
+  .drawer-item .thumb{width:48px; height:48px; background:var(--panel-2); flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+  .drawer-item .thumb img{width:100%;height:100%;object-fit:cover;}
+  .drawer-item .meta{flex:1; min-width:0;}
+  .drawer-item .meta strong{display:block; font-size:0.84rem;}
+  .drawer-item .meta small{color:var(--grey); font-size:0.72rem;}
+  .drawer-item .remove{color:var(--grey); font-size:1rem; padding:4px;}
+  .drawer-item .remove:hover{color:var(--danger);}
+  .drawer-foot{padding:20px 24px 26px; border-top:1px solid var(--line);}
+  .drawer-foot .btn{width:100%; justify-content:center;}
+  .drawer-foot small{display:block; margin-top:10px; color:var(--grey); font-size:0.72rem; text-align:center; line-height:1.6;}
+
+  /* ===================== ADMIN ===================== */
+  .admin-grid{display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-bottom:60px;}
+  @media (max-width:900px){ .admin-grid{grid-template-columns:1fr;} }
+
+  .panel{background:var(--panel); border:1px solid var(--line); padding:30px;}
+  .panel h3{font-size:1.15rem; margin-bottom:18px;}
+  .panel .row{display:flex; gap:10px; margin-bottom:12px;}
+  .panel .row input{flex:1;}
+
+  .folders-admin-list{display:flex; flex-direction:column; gap:10px; margin-top:8px;}
+  .folder-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 16px; border:1px solid var(--line); background:var(--black);
+    flex-wrap:wrap;
+  }
+  .folder-row .info strong{display:block; font-size:0.92rem;}
+  .folder-row .info small{color:var(--grey); font-size:0.76rem;}
+  .folder-row .actions{display:flex; gap:8px;}
+  .folder-cover-thumb{
+    width:44px; height:44px; border-radius:4px; overflow:hidden; flex-shrink:0;
+    background:var(--panel-2); display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+  }
+  .folder-cover-thumb img{width:100%; height:100%; object-fit:cover;}
+  .folder-cover-thumb svg{width:55%;}
+
+  .upload-zone{
+    border:1.5px dashed var(--line); padding:30px 20px; text-align:center; margin-top:10px;
+    cursor:pointer; transition:border-color 0.2s;
+  }
+  .upload-zone:hover{border-color:var(--gold-soft);}
+  .upload-zone input[type=file]{display:none;}
+  .upload-zone p{color:var(--grey); font-size:0.85rem; margin-top:8px;}
+
+  .progress-bar{
+    height:4px; background:var(--panel-2); margin-top:14px; overflow:hidden; display:none;
+  }
+  .progress-bar .fill{height:100%; background:var(--gold); width:0%; transition:width 0.2s;}
+
+  .clients-list{display:flex; flex-direction:column; gap:10px; margin-top:18px;}
+  .client-row{
+    display:flex; align-items:center; gap:12px; padding:13px 16px;
+    border:1px solid var(--line); background:var(--black);
+  }
+  .client-row .info{flex:1; min-width:0;}
+  .client-row .info strong{display:block; font-size:0.88rem;}
+  .client-row .info small{color:var(--grey); font-size:0.74rem;}
+  .client-row .actions{display:flex; gap:6px; flex-shrink:0;}
+  .status-pill{
+    font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase; padding:4px 9px;
+    border-radius:20px; flex-shrink:0;
+  }
+  .status-pill.pending{background:rgba(201,162,75,0.15); color:var(--gold);}
+  .status-pill.notified{background:rgba(122,117,104,0.2); color:var(--grey);}
+
+  .combo-row{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 16px; border:1px solid var(--line); background:var(--black);
+  }
+  .combo-row strong{font-size:0.9rem;}
+  .combo-row small{color:var(--grey); display:block; font-size:0.74rem; margin-top:2px;}
+
+  .price-tag{
+    position:absolute; bottom:8px; right:10px; background:rgba(11,11,12,0.82);
+    border:1px solid var(--gold-soft); color:var(--gold); font-size:0.7rem; font-weight:600;
+    padding:3px 9px; border-radius:12px; z-index:4;
+  }
+
+  .cart-summary{
+    padding:16px 24px; border-top:1px solid var(--line); background:var(--panel-2);
+  }
+  .cart-summary-row{
+    display:flex; justify-content:space-between; align-items:baseline; font-size:0.84rem; color:var(--grey);
+    margin-bottom:6px;
+  }
+  .cart-summary-row.total{
+    font-size:1.1rem; color:var(--bone); font-family:'Fraunces', serif; margin-top:10px;
+  }
+  .cart-summary-row.total strong{color:var(--gold);}
+  .cart-summary-hint{font-size:0.72rem; color:var(--gold-soft); margin-top:8px; line-height:1.5;}
+
+  .all-promos-box{
+    padding:16px 24px; border-top:1px solid var(--line);
+  }
+  .all-promos-box .promos-title{
+    font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey);
+    margin-bottom:10px;
+  }
+  .promo-chip{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:9px 12px; border:1px solid var(--line); border-radius:4px;
+    font-size:0.8rem; margin-bottom:7px; transition:border-color 0.2s;
+  }
+  .promo-chip.achieved{border-color:var(--gold); background:rgba(201,162,75,0.08);}
+  .promo-chip strong{color:var(--gold);}
+  .promo-chip .check{color:var(--gold); font-size:0.9rem;}
+  .full-pack-chip{
+    margin-top:4px; padding:10px 12px; border:1px dashed var(--gold-soft); border-radius:4px;
+    font-size:0.8rem; color:var(--gold); text-align:center;
+  }
+
+  select{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--bone);
+    padding:13px 16px; font-size:0.92rem; border-radius:var(--radius); width:100%;
+  }
+
+  .tabs{display:flex; gap:2px; margin-bottom:40px; border-bottom:1px solid var(--line);}
+  .tab-btn{
+    padding:14px 22px; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--grey); border-bottom:2px solid transparent; transition:all 0.2s;
+  }
+  .tab-btn.active{color:var(--gold); border-bottom-color:var(--gold);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ===================== TOAST ===================== */
+  .toast{
+    position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--panel); border:1px solid var(--gold-soft); color:var(--bone);
+    padding:14px 24px; font-size:0.85rem; z-index:600; opacity:0; pointer-events:none;
+    transition:all 0.3s; max-width:90vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .promo-popup{
+    position:fixed; top:90px; right:18px; z-index:610; max-width:300px;
+    background:linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
+    border:1px solid var(--gold); border-radius:6px;
+    padding:14px 36px 14px 16px; box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    display:flex; align-items:flex-start; gap:10px;
+    opacity:0; pointer-events:none; transform:translateX(20px) scale(0.96);
+    transition:all 0.35s cubic-bezier(.2,.8,.2,1);
+  }
+  .promo-popup.show{opacity:1; pointer-events:all; transform:translateX(0) scale(1);}
+  .promo-popup-icon{font-size:1.3rem; line-height:1; flex-shrink:0; margin-top:1px;}
+  .promo-popup-text{font-size:0.82rem; line-height:1.45; color:var(--bone);}
+  .promo-popup-text strong{color:var(--gold);}
+  .promo-popup-close{
+    position:absolute; top:8px; right:10px; color:var(--grey); font-size:1.1rem; line-height:1; padding:2px;
+  }
+  .promo-popup-close:hover{color:var(--gold);}
+  @media (max-width:600px){
+    .promo-popup{ top:auto; bottom:100px; right:14px; left:14px; max-width:none; }
+  }
+
+  footer{
+    padding:40px 6vw; text-align:center; color:var(--grey); font-size:0.78rem;
+    border-top:1px solid var(--line);
+  }
+
+  /* ===================== LIGHTBOX ===================== */
+  .lightbox-overlay{
+    position:fixed; inset:0; background:rgba(5,5,5,0.96); z-index:550;
+    display:none; align-items:center; justify-content:center; padding:5vw;
+  }
+  .lightbox-overlay.open{display:flex;}
+  .lightbox-close{
+    position:absolute; top:24px; right:28px; font-size:2rem; color:var(--grey);
+    z-index:560; line-height:1; padding:6px;
+  }
+  .lightbox-close:hover{color:var(--gold);}
+  .lightbox-content{
+    max-width:720px; width:100%; display:flex; flex-direction:column; align-items:center;
+  }
+  .lightbox-frame{
+    position:relative; width:100%; aspect-ratio:1/1; background:var(--panel);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .lightbox-frame img{width:100%; height:100%; object-fit:contain; background:var(--black);}
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px;
+    border-radius:50%; background:rgba(11,11,12,0.6); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:5;
+    transition:all 0.2s;
+  }
+  .lightbox-nav:hover{border-color:var(--gold); background:rgba(11,11,12,0.85);}
+  .lightbox-nav svg{width:20px; height:20px; stroke:var(--bone);}
+  .lightbox-prev{left:14px;}
+  .lightbox-next{right:14px;}
+  .lightbox-meta{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    margin-top:18px; gap:16px; flex-wrap:wrap;
+  }
+  .lightbox-meta .info small{
+    display:block; color:var(--grey); font-size:0.74rem; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .lightbox-meta .info strong{font-size:0.95rem; font-family:'Fraunces', serif; font-weight:500;}
+  .lightbox-fav-btn{
+    display:flex; align-items:center; gap:9px; padding:11px 22px;
+    border:1px solid var(--line); border-radius:var(--radius); font-size:0.76rem;
+    letter-spacing:0.08em; text-transform:uppercase; transition:all 0.2s;
+  }
+  .lightbox-fav-btn svg{width:16px; height:16px; stroke:currentColor; fill:none; transition:all 0.2s;}
+  .lightbox-fav-btn.active{background:var(--gold); border-color:var(--gold); color:var(--black);}
+  .lightbox-fav-btn.active svg{fill:var(--black);}
+
+</style>
+</head>
+<body>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============ MINI CARTEL DE PROMO (aparece al ir seleccionando fotos) ============ -->
+<div class="promo-popup" id="promoPopup">
+  <button class="promo-popup-close" id="promoPopupClose" aria-label="Cerrar">×</button>
+  <span class="promo-popup-icon">🎁</span>
+  <span class="promo-popup-text" id="promoPopupText"></span>
+</div>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="mainNav">
+  <div class="brand">Crisjapo<span class="mark">Fotografías</span></div>
+  <div class="nav-right">
+    <a href="https://instagram.com/japo.ph" target="_blank" rel="noopener" class="nav-ig-link" aria-label="Instagram @japo.ph">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="20" height="20">
+        <rect x="2" y="2" width="20" height="20" rx="5"/>
+        <circle cx="12" cy="12" r="4.5"/>
+        <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+    <div class="lang-switch" id="langSwitch">
+      <button class="lang-btn active" data-lang="es"><span class="flag">🇦🇷</span>ES</button>
+      <button class="lang-btn" data-lang="pt"><span class="flag">🇧🇷</span>PT</button>
+    </div>
+    <span class="nav-user hidden" id="navUserBox">
+      <span class="user-pill">
+        <span class="user-initial" id="navUserInitial"></span>
+        <strong id="navUserName"></strong>
+        <button class="nav-logout-btn" id="navLogout" data-i18n="navLogout">salir</button>
+      </span>
+    </span>
+    <a href="#" class="nav-link" id="navAdminLink" data-i18n="navAdmin">Admin</a>
+  </div>
+</nav>
+
+<!-- ============ PANTALLA: LOGIN CLIENTE ============ -->
+<div class="center-page login-page" id="screenClientLogin">
+
+  <!-- COLUMNA IZQUIERDA: tutorial de 3 pasos -->
+  <div class="login-tutorial">
+    <div class="brand-logo" style="justify-content:flex-start; margin-bottom:28px;">
+      <svg viewBox="0 0 108 108" class="brand-icon">
+        <circle cx="54" cy="54" r="50" class="bi-ring"/>
+        <path d="M60 64 L74 38 L88 64 Z" class="bi-mountains"/>
+        <path d="M16 64 L38 24 L60 64 Z" class="bi-mountains"/>
+        <path d="M38 24 L44 34 L33 34 Z" class="bi-peak-snow"/>
+        <g class="bi-pine">
+          <path d="M15 60 L20 49 L25 60 Z"/>
+          <path d="M16.5 53 L20 44 L23.5 53 Z"/>
+          <line x1="20" y1="60" x2="20" y2="64"/>
+        </g>
+        <g class="bi-pine">
+          <path d="M84 62 L89 52 L94 62 Z"/>
+          <path d="M85.5 55.5 L89 47.5 L92.5 55.5 Z"/>
+          <line x1="89" y1="62" x2="89" y2="66"/>
+        </g>
+        <line x1="12" y1="64" x2="96" y2="64" stroke="var(--gold-soft)" stroke-width="1" opacity="0.5"/>
+        <g>
+          <rect x="30" y="58" width="48" height="32" rx="4" class="bi-camera-body"/>
+          <rect x="42" y="51" width="14" height="9" rx="2" class="bi-camera-body"/>
+          <rect x="68" y="63" width="7" height="5" rx="1" class="bi-camera-flash"/>
+          <circle cx="54" cy="75" r="14" class="bi-camera-lens"/>
+          <circle cx="54" cy="75" r="9.5" class="bi-camera-lens-inner"/>
+          <circle cx="54" cy="75" r="5.5" class="bi-shutter"/>
+        </g>
+      </svg>
+    </div>
+
+    <h2 class="tutorial-title" data-i18n="tutorialTitle">¿Cómo funciona?</h2>
+    <p class="tutorial-intro" data-i18n="tutorialIntro">Ingresá con tus datos, elegí tus fotos favoritas y mandame tu selección por WhatsApp. ¡Así de simple!</p>
+
+    <div class="tutorial-steps">
+      <div class="tutorial-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong data-i18n="step1Title">Ingresá con tus datos</strong>
+          <span data-i18n="step1Desc">Ponés tu nombre y email para acceder a tus álbumes.</span>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong data-i18n="step2Title">Elegí con el corazón ♡</strong>
+          <span data-i18n="step2Desc">Tocá el corazón dorado en cada foto que te guste. Se van acumulando en tu carrito.</span>
+        </div>
+      </div>
+      <div class="tutorial-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong data-i18n="step3Title">Mandá tu selección por WhatsApp</strong>
+          <span data-i18n="step3Desc">Abrí el carrito 🛒, revisá tus elegidas y tocá "Enviar por WhatsApp". ¡Listo!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMNA DERECHA: formulario de login -->
+  <div class="auth-card">
+    <span class="eyebrow" data-i18n="loginEyebrow">Bienvenida/o</span>
+    <h1 data-i18n="loginTitle">Mirá tus fotos</h1>
+    <p class="sub" data-i18n="loginSub">Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.</p>
+    <div class="field">
+      <label for="clientName" data-i18n="loginNameLabel">Nombre y apellido</label>
+      <input type="text" id="clientName" placeholder="Ej: María Pérez" data-i18n-placeholder="loginNamePh">
+    </div>
+    <div class="field">
+      <label for="clientEmail" data-i18n="loginEmailLabel">Email</label>
+      <input type="text" inputmode="email" autocomplete="email" id="clientEmail" placeholder="tu@email.com">
+    </div>
+    <button class="btn btn-gold" id="btnClientLogin" data-i18n="loginBtn">Entrar a la galería</button>
+    <p class="form-error" id="clientLoginError"></p>
+  </div>
+
+</div>
+
+<!-- ============ PANTALLA: GALERÍA CLIENTE (lista carpetas) ============ -->
+<div class="page hidden" id="screenGallery">
+  <div class="section-head">
+    <p class="eyebrow" data-i18n="galleryEyebrow">Catálogo</p>
+    <h2 data-i18n="galleryTitle">Tus álbumes</h2>
+    <p data-i18n="gallerySub">Elegí un día para ver las fotos. Marcá las que más te gusten con el corazón dorado.</p>
+  </div>
+  <div class="albums-grid" id="clientFoldersGrid"></div>
+</div>
+
+<!-- ============ PANTALLA: FOTOS DE UNA CARPETA (cliente) ============ -->
+<div class="page hidden" id="screenClientPhotos">
+  <button class="back-link" id="backToGallery" data-i18n="backToAlbums">← Volver a álbumes</button>
+  <p class="eyebrow" id="clientPhotosEyebrow">Álbum</p>
+  <h2 id="clientPhotosTitle" style="font-size:clamp(1.7rem,4vw,2.4rem); margin-top:8px;"></h2>
+  <p style="color:var(--grey); margin-top:10px;" data-i18n="photosHint">Tocá el corazón en las fotos que quieras agregar a tu selección.</p>
+  <div class="photo-grid" id="clientPhotoGrid"></div>
+</div>
+
+<!-- ============ PANTALLA: LOGIN ADMIN ============ -->
+<div class="center-page hidden" id="screenAdminLogin">
+  <div class="auth-card">
+    <span class="eyebrow">Acceso privado</span>
+    <h1>Panel de Crisjapo</h1>
+    <p class="sub">Ingresá tu clave de administrador para gestionar álbumes, fotos y clientes.</p>
+    <div class="field">
+      <label for="adminPass">Clave de administrador</label>
+      <input type="password" id="adminPass" placeholder="••••••••">
+    </div>
+    <button class="btn btn-gold" id="btnAdminLogin">Entrar al panel</button>
+    <p class="form-error" id="adminLoginError"></p>
+    <p class="auth-switch"><button id="backToClientFromAdmin">← Volver a la galería</button></p>
+  </div>
+</div>
+
+<!-- ============ PANTALLA: ADMIN ============ -->
+<div class="page hidden" id="screenAdmin">
+  <div class="section-head">
+    <p class="eyebrow">Panel privado</p>
+    <h2>Administración</h2>
+    <p>Creá álbumes, subí fotos con tu marca de agua y gestioná los clientes del día.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tabFolders">Álbumes y fotos</button>
+    <button class="tab-btn" data-tab="tabPricing">Precios</button>
+    <button class="tab-btn" data-tab="tabClients">Clientes</button>
+  </div>
+
+  <!-- TAB ALBUMES -->
+  <div class="tab-panel active" id="tabFolders">
+    <div class="admin-grid">
+      <div class="panel">
+        <h3>Crear nuevo álbum</h3>
+        <div class="field">
+          <label for="newFolderName">Nombre del álbum</label>
+          <input type="text" id="newFolderName" placeholder="Ej: Boda Lucía y Tomás">
+        </div>
+        <div class="field">
+          <label for="newFolderDate">Fecha</label>
+          <input type="date" id="newFolderDate">
+        </div>
+        <div class="field">
+          <label for="newFolderCover">Foto de portada (opcional)</label>
+          <label class="upload-zone" id="coverUploadZone" style="padding:18px;">
+            <input type="file" id="newFolderCover" accept="image/*">
+            <strong id="coverUploadLabel" style="font-size:0.85rem;">Tocá para elegir una imagen</strong>
+            <p>Es la foto de referencia que ven los clientes antes de entrar al álbum.</p>
+          </label>
+        </div>
+        <button class="btn btn-gold" id="btnCreateFolder">Crear álbum</button>
+      </div>
+
+      <div class="panel">
+        <h3>Subir fotos</h3>
+        <div class="field">
+          <label for="folderSelectForUpload">Álbum de destino</label>
+          <select id="folderSelectForUpload"></select>
+        </div>
+        <label class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/heic,image/heif,image/webp,image/*" multiple>
+          <strong>Tocá para elegir fotos</strong>
+          <p>Se les va a poner tu marca de agua automáticamente.</p>
+          <p style="margin-top:8px; font-size:0.75rem; opacity:0.7;">📱 En tablet: tocá las 3 rayas (☰) en el selector de archivos y elegí "Tarjeta SD" o "Almacenamiento externo" para acceder a tu memoria.</p>
+        </label>
+        <div class="progress-bar" id="uploadProgress"><div class="fill" id="uploadProgressFill"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Tus álbumes</h3>
+      <div class="folders-admin-list" id="adminFoldersList"></div>
+    </div>
+
+    <div class="panel hidden" id="adminPhotosPanel" style="margin-top:30px;">
+      <button class="back-link" id="closeAdminPhotos">← Cerrar álbum</button>
+      <h3 id="adminPhotosTitle"></h3>
+      <div class="photo-grid" id="adminPhotoGrid"></div>
+    </div>
+  </div>
+
+  <!-- TAB PRECIOS -->
+  <div class="tab-panel" id="tabPricing">
+    <div class="panel">
+      <h3>Precio individual</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Precio de cada foto suelta, sin combo.
+      </p>
+      <div class="row">
+        <input type="number" id="priceUnit" placeholder="Ej: 3000" min="0" step="1">
+      </div>
+      <button class="btn btn-gold btn-sm" id="btnSavePriceUnit">Guardar precio individual</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h3>Combos: "comprás X, llevás Y gratis"</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Definí escalones a mano. Ej: comprando 5 fotos, 1 es gratis (paga 4). Comprando 10, 3 son gratis
+        (paga 7). El cliente ve automáticamente el escalón que le conviene según cuántas fotos elija.
+      </p>
+      <div id="combosList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;"></div>
+      <div class="row">
+        <input type="number" id="newComboQty" placeholder="Comprando (ej: 5)" min="1" step="1">
+        <input type="number" id="newComboFree" placeholder="Gratis (ej: 1)" min="1" step="1">
+      </div>
+      <button class="btn btn-outline btn-sm" id="btnAddCombo">Agregar escalón</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h3>Pack completo (a convenir)</h3>
+      <p style="color:var(--grey); font-size:0.85rem; margin-bottom:16px;">
+        Para clientes que quieren absolutamente todas las fotos. No se calcula un precio automático:
+        se muestra un cartel invitando a consultar por WhatsApp.
+      </p>
+      <div class="field">
+        <label for="fullPackMinQty">Cantidad de referencia (ej: 50)</label>
+        <input type="number" id="fullPackMinQty" placeholder="Ej: 50" min="1" step="1">
+      </div>
+      <div class="field">
+        <label for="fullPackLabel">Texto del cartel</label>
+        <input type="text" id="fullPackLabel" placeholder="Ej: ¿Querés el álbum completo? Consultanos">
+      </div>
+      <button class="btn btn-gold btn-sm" id="btnSaveFullPack">Guardar cartel</button>
+    </div>
+  </div>
+
+  <!-- TAB CLIENTES -->
+  <div class="tab-panel" id="tabClients">
+    <div class="panel">
+      <h3>Agregar cliente del día</h3>
+      <div class="row">
+        <input type="text" id="newClientName" placeholder="Nombre del cliente">
+        <input type="tel" id="newClientPhone" placeholder="Tel. con código de país (ej: 542944112233)">
+      </div>
+      <button class="btn btn-gold" id="btnAddClient">Agregar a la lista</button>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <h3>Clientes cargados</h3>
+      <div class="clients-list" id="clientsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FAVORITES LAUNCHER (solo vista cliente) ============ -->
+<button class="fav-launcher hidden" id="favLauncher" aria-label="Ver selección">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
+  <span class="badge" id="favBadge">0</span>
+</button>
+
+<!-- ============ DRAWER ============ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <h3 data-i18n="drawerTitle">Tu selección</h3>
+      <p data-i18n="drawerSub">Las fotos que elegiste, de todos los álbumes.</p>
+    </div>
+    <button class="drawer-close" id="drawerClose" aria-label="Cerrar">×</button>
+  </div>
+  <div class="drawer-list" id="drawerList"></div>
+  <div class="cart-summary hidden" id="cartSummary"></div>
+  <div class="all-promos-box hidden" id="allPromosBox"></div>
+  <div class="drawer-foot">
+    <button class="btn btn-gold" id="sendWhatsapp" data-i18n="drawerSend">Enviar por WhatsApp</button>
+    <small data-i18n="drawerSendHint">Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.</small>
+  </div>
+</div>
+
+<footer>© 2026 Crisjapo Fotografías — Bariloche, Argentina</footer>
+
+<!-- ============ LIGHTBOX (vista cliente) ============ -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Cerrar">×</button>
+  <div class="lightbox-content">
+    <div class="lightbox-frame">
+      <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Foto anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <img id="lightboxImg" src="" alt="">
+      <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Foto siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div class="lightbox-meta">
+      <span class="info">
+        <small id="lightboxFolderName"></small>
+        <strong id="lightboxFileName"></strong>
+      </span>
+      <button class="lightbox-fav-btn" id="lightboxFavBtn">
+        <svg viewBox="0 0 24 24" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
+        <span id="lightboxFavLabel">Agregar a selección</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN
+========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBF24UuGGJBnN4YPe6wKApY_NeXFmyK_nY",
+  authDomain: "crisjapo-fotografia.firebaseapp.com",
+  projectId: "crisjapo-fotografia",
+  storageBucket: "crisjapo-fotografia.firebasestorage.app",
+  messagingSenderId: "254517573642",
+  appId: "1:254517573642:web:5206dc75365487fda307f3",
+  measurementId: "G-MRDKP3VK04"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const WHATSAPP_PHONE = "542944251388"; // tu número, sin '+' ni espacios
+const ADMIN_PASSWORD = "crisjapo2026"; // ⚠️ cambiá esta clave por la tuya
+const WATERMARK_TEXT = "CRISJAPO FOTOGRAFÍAS";
+const APP_URL = "https://alejandronowoosad.github.io/crisjapofotos/"; // ⚠️ actualizá si cambia tu URL
+
+/* =========================================================
+   ESTADO GLOBAL
+========================================================= */
+let currentClient = null;       // { name, email }
+let favorites = [];             // [{ photoId, folderId, folderName, thumb, fileName }]
+let folders = [];               // cache de álbumes
+let currentFolderId = null;     // álbum abierto (vista cliente o admin)
+let isAdmin = false;
+let currentClientPhotos = [];   // fotos del álbum abierto en vista cliente
+let currentClientFolderName = "";
+let lightboxIndex = 0;
+let pricing = { unitPrice: 0, combos: [], fullPackLabel: '', fullPackMinQty: 0 }; // se carga desde Firestore
+
+/* =========================================================
+   UTILIDADES UI
+========================================================= */
+/* =========================================================
+   IDIOMA (ES / PT) — traducción simple de la vista cliente.
+   El panel de administrador queda siempre en español.
+========================================================= */
+const TRANSLATIONS = {
+  es: {
+    navHello: "Hola",
+    navLogout: "Salir",
+    navAdmin: "Admin",
+    loginEyebrow: "Bienvenida/o",
+    loginTitle: "Mirá tus fotos",
+    loginSub: "Ingresá tu nombre y email para ver las carpetas disponibles y elegir tus fotos favoritas.",
+    loginNameLabel: "Nombre y apellido",
+    loginNamePh: "Ej: María Pérez",
+    loginEmailLabel: "Email",
+    loginBtn: "Entrar a la galería",
+    galleryEyebrow: "Catálogo",
+    galleryTitle: "Tus álbumes",
+    gallerySub: "Elegí un día para ver las fotos. Marcá las que más te gusten con el corazón dorado.",
+    backToAlbums: "← Volver a álbumes",
+    photosHint: "Tocá el corazón en las fotos que quieras agregar a tu selección.",
+    drawerTitle: "Tu selección",
+    drawerSub: "Las fotos que elegiste, de todos los álbumes.",
+    drawerSend: "Enviar por WhatsApp",
+    drawerSendHint: "Se abre WhatsApp con el listado de fotos. La compra se coordina por mensaje.",
+    drawerEmpty: "Todavía no marcaste ninguna foto.<br>Entrá a un álbum y tocá el corazón en las que más te gusten.",
+    favAddedToSelection: "En tu selección",
+    favAddToSelection: "Agregar a selección",
+    noAlbumsYet: "Todavía no hay álbumes cargados. Volvé pronto.",
+    loadingAlbums: "Cargando álbumes...",
+    loadingPhotos: "Cargando fotos...",
+    noPhotosYet: "Este álbum todavía no tiene fotos.",
+    photosCount: "fotos",
+    toastNoSelection: "Todavía no elegiste ninguna foto.",
+    loginErrFields: "Completá tu nombre y email para continuar.",
+    loginErrEmail: "Ingresá un email válido.",
+    photoOf: "Foto {n} de {total}",
+    promoClose: "¡Estás cerca! Sumá {missing} foto(s) más y llevás <strong>{free} gratis</strong> (comprando {qty}).",
+    promoReached: "¡Llegaste a la promo de {qty} fotos! Te llevás <strong>{free} gratis</strong>.",
+    tutorialTitle: "¿Cómo funciona?",
+    tutorialIntro: "Ingresá con tus datos, elegí tus fotos favoritas y mandanos tu selección por WhatsApp. ¡Así de simple!",
+    step1Title: "Ingresá con tus datos",
+    step1Desc: "Ponés tu nombre y email para acceder a tus álbumes.",
+    step2Title: "Elegí con el corazón ♡",
+    step2Desc: "Tocá el corazón dorado en cada foto que te guste. Se van acumulando en tu carrito.",
+    step3Title: "Mandá tu selección por WhatsApp",
+    step3Desc: "Abrí el carrito 🛒, revisá tus elegidas y tocá \"Enviar por WhatsApp\". ¡Listo!"
+  },
+  pt: {
+    navHello: "Olá",
+    navLogout: "Saír",
+    navAdmin: "Admin",
+    loginEyebrow: "Bem-vinda/o",
+    loginTitle: "Veja suas fotos",
+    loginSub: "Digite seu nome e email para ver as pastas disponíveis e escolher suas fotos favoritas.",
+    loginNameLabel: "Nome completo",
+    loginNamePh: "Ex: María Pérez",
+    loginEmailLabel: "Email",
+    loginBtn: "Entrar na galeria",
+    galleryEyebrow: "Catálogo",
+    galleryTitle: "Seus álbuns",
+    gallerySub: "Escolha um dia para ver as fotos. Marque as que você mais gostar com o coração dourado.",
+    backToAlbums: "← Voltar aos álbuns",
+    photosHint: "Toque no coração nas fotos que quiser adicionar à sua seleção.",
+    drawerTitle: "Sua seleção",
+    drawerSub: "As fotos que você escolheu, de todos os álbuns.",
+    drawerSend: "Enviar pelo WhatsApp",
+    drawerSendHint: "O WhatsApp abre com a lista de fotos. A compra é combinada por mensagem.",
+    drawerEmpty: "Você ainda não marcou nenhuma foto.<br>Entre em um álbum e toque no coração nas que mais gostar.",
+    favAddedToSelection: "Na sua seleção",
+    favAddToSelection: "Adicionar à seleção",
+    noAlbumsYet: "Ainda não há álbuns disponíveis. Volte em breve.",
+    loadingAlbums: "Carregando álbuns...",
+    loadingPhotos: "Carregando fotos...",
+    noPhotosYet: "Este álbum ainda não tem fotos.",
+    photosCount: "fotos",
+    toastNoSelection: "Você ainda não escolheu nenhuma foto.",
+    loginErrFields: "Preencha seu nome e email para continuar.",
+    loginErrEmail: "Digite um email válido.",
+    photoOf: "Foto {n} de {total}",
+    promoClose: "Você está perto! Adicione {missing} foto(s) e ganhe <strong>{free} grátis</strong> (comprando {qty}).",
+    promoReached: "Você chegou na promoção de {qty} fotos! Você ganha <strong>{free} grátis</strong>.",
+    tutorialTitle: "Como funciona?",
+    tutorialIntro: "Entre com seus dados, escolha suas fotos favoritas e nos mande sua seleção pelo WhatsApp. Simples assim!",
+    step1Title: "Entre com seus dados",
+    step1Desc: "Digite seu nome e email para acessar seus álbuns.",
+    step2Title: "Escolha com o coração ♡",
+    step2Desc: "Toque o coração dourado em cada foto que gostar. Elas vão se acumulando no carrinho.",
+    step3Title: "Mande sua seleção pelo WhatsApp",
+    step3Desc: "Abra o carrinho 🛒, confira suas escolhidas e toque em \"Enviar pelo WhatsApp\". Pronto!"
+  }
+};
+
+let currentLang = 'es';
+
+function t(key){
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.es[key] || key;
+}
+
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+  });
+  // re-renderizar partes dinámicas que dependen del idioma
+  renderDrawer();
+  if(!document.getElementById('screenGallery').classList.contains('hidden')){
+    loadFoldersForClient();
+  }
+}
+
+function setLanguage(lang){
+  currentLang = lang;
+  try{ localStorage.setItem('crisjapo_lang', lang); }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  applyTranslations();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+});
+
+(function initLang(){
+  try{
+    const saved = localStorage.getItem('crisjapo_lang');
+    if(saved) currentLang = saved;
+  }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === currentLang);
+  });
+})();
+
+function showToast(msg){
+  const toastEl = document.getElementById('toast');
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(()=> toastEl.classList.remove('show'), 2600);
+}
+
+function showScreen(id){
+  document.querySelectorAll('#screenClientLogin, #screenGallery, #screenClientPhotos, #screenAdminLogin, #screenAdmin')
+    .forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+const ICON_CAMERA = `<svg viewBox="0 0 24 24" fill="none" stroke="#C9A24B" stroke-width="1.3"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.4"/></svg>`;
+const ICON_TRASH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M9 7V4h6v3m-7 0 1 13h8l1-13"/></svg>`;
+
+function fmtDate(dateStr){
+  if(!dateStr) return "";
+  const [y,m,d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+/* Detecta si un teléfono es de Brasil (código de país 55) para
+   mandar las notificaciones del admin en portugués automáticamente.
+   Acepta el número con o sin '+' adelante (ej: "5511987654321" o "+5511987654321"). */
+function isBrazilPhone(phone){
+  if(!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith('55');
+}
+
+/* =========================================================
+   PERSISTENCIA DE SESIÓN (cliente)
+   Usamos localStorage para que el cliente quede recordado
+   en este dispositivo de forma permanente, sin tener que
+   registrarse de nuevo cada vez que entra a la página.
+========================================================= */
+function saveClientSession(){
+  try{
+    localStorage.setItem('crisjapo_client', JSON.stringify(currentClient));
+    localStorage.setItem('crisjapo_favs', JSON.stringify(favorites));
+  }catch(e){}
+}
+function loadClientSession(){
+  try{
+    const c = localStorage.getItem('crisjapo_client');
+    const f = localStorage.getItem('crisjapo_favs');
+    if(c) currentClient = JSON.parse(c);
+    if(f) favorites = JSON.parse(f);
+  }catch(e){}
+}
+
+/* =========================================================
+   LOGIN CLIENTE
+========================================================= */
+document.getElementById('btnClientLogin').addEventListener('click', () => {
+  const name = document.getElementById('clientName').value.trim();
+  const email = document.getElementById('clientEmail').value.trim().toLowerCase();
+  const errEl = document.getElementById('clientLoginError');
+  const btn = document.getElementById('btnClientLogin');
+
+  if(!name || !email){
+    errEl.textContent = t('loginErrFields');
+    errEl.style.display = "block";
+    return;
+  }
+  // Validación más flexible: solo requiere @ y al menos un punto después del @
+  const atPos = email.indexOf('@');
+  if(atPos < 1 || !email.slice(atPos).includes('.')){
+    errEl.textContent = t('loginErrEmail');
+    errEl.style.display = "block";
+    return;
+  }
+  errEl.style.display = "none";
+
+  // Guardamos la sesión y mostramos la galería de inmediato, sin esperar a Firestore
+  currentClient = { name, email };
+  saveClientSession();
+  updateNavForClient();
+  showScreen('screenGallery');
+  document.getElementById('favLauncher').classList.remove('hidden');
+  loadFoldersForClient(); // carga en paralelo, no bloqueante
+
+  // Registrar visita en Firestore en segundo plano (no bloquea el acceso)
+  db.collection('visitantes').add({
+    name, email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+});
+
+function updateNavForClient(){
+  const initial = currentClient.name.trim().charAt(0).toUpperCase();
+  document.getElementById('navUserInitial').textContent = initial;
+  document.getElementById('navUserName').textContent = currentClient.name.split(' ')[0]; // solo primer nombre
+  document.getElementById('navUserBox').classList.remove('hidden');
+}
+
+document.getElementById('navLogout').addEventListener('click', () => {
+  currentClient = null;
+  favorites = [];
+  localStorage.removeItem('crisjapo_client');
+  localStorage.removeItem('crisjapo_favs');
+  document.getElementById('navUserBox').classList.add('hidden');
+  document.getElementById('favLauncher').classList.remove('hidden');
+  document.getElementById('favLauncher').classList.add('hidden');
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientEmail').value = '';
+  renderDrawer();
+  showScreen('screenClientLogin');
+});
+
+/* =========================================================
+   CARGAR ÁLBUMES (vista cliente)
+========================================================= */
+async function loadFoldersForClient(){
+  const grid = document.getElementById('clientFoldersGrid');
+  grid.innerHTML = `<div class="empty-state">${t('loadingAlbums')}</div>`;
+
+  try{
+    const snap = await db.collection('folders').orderBy('date', 'desc').get();
+    folders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if(folders.length === 0){
+      grid.innerHTML = `<div class="empty-state">${t('noAlbumsYet')}</div>`;
+      return;
+    }
+
+    grid.innerHTML = folders.map(f => {
+      const dateLabel = fmtDateAlbum(f.date);
+      return `
+      <button class="album-card" data-folder="${f.id}">
+        <!-- montañas de fondo -->
+        <svg class="album-bg-scene" viewBox="0 0 200 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="0,130 55,40 110,130" fill="#3d2e00"/>
+          <polygon points="60,130 120,20 180,130" fill="#2a1f00"/>
+          <polygon points="120,130 165,55 210,130" fill="#3d2e00"/>
+          <polygon points="115,20 120,20 132,38 108,38" fill="#C9A24B"/>
+        </svg>
+        <!-- copos de nieve -->
+        <span class="album-snowflake s1">❄</span>
+        <span class="album-snowflake s2">❄</span>
+        <!-- texto -->
+        <div class="album-card-content">
+          <div class="album-card-name">${f.name}</div>
+          <div class="album-card-date">${dateLabel}</div>
+        </div>
+      </button>`;
+    }).join('');
+
+    grid.querySelectorAll('.album-card').forEach(card => {
+      card.addEventListener('click', () => openClientFolder(card.dataset.folder));
+    });
+
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `<div class="empty-state">Error cargando álbumes. Revisá tu conexión.</div>`;
+  }
+}
+
+/* Formatea fecha como "13 de jul" para las tarjetas */
+function fmtDateAlbum(dateStr){
+  if(!dateStr) return '';
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const [y, m, d] = dateStr.split('-');
+  return `${parseInt(d)} de ${months[parseInt(m)-1]}`;
+}
+
+/* =========================================================
+   VER FOTOS DE UN ÁLBUM (cliente)
+========================================================= */
+async function openClientFolder(folderId){
+  currentFolderId = folderId;
+  const folder = folders.find(f => f.id === folderId);
+  document.getElementById('clientPhotosEyebrow').textContent = fmtDate(folder.date);
+  document.getElementById('clientPhotosTitle').textContent = folder.name;
+
+  const grid = document.getElementById('clientPhotoGrid');
+  grid.innerHTML = `<p style="color:var(--grey);">${t('loadingPhotos')}</p>`;
+
+  const snap = await db.collection('folders').doc(folderId).collection('photos').orderBy('createdAt','asc').get();
+  const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  if(photos.length === 0){
+    grid.innerHTML = `<p style="color:var(--grey);">${t('noPhotosYet')}</p>`;
+  } else {
+    grid.innerHTML = photos.map((p, i) => {
+      const isFav = favorites.some(fv => fv.photoId === p.id);
+      const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
+      return `
+      <div class="photo-slide selectable" data-photo-index="${i}">
+        <span class="notch"></span>
+        <button class="fav-toggle ${isFav ? 'active':''}" data-photo="${p.id}" data-thumb="${p.url}" data-filename="${displayName}" aria-label="Marcar favorita">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2 5 5.3 5c2 0 3.4 1.1 4.2 2.3C10.3 6.1 11.7 5 13.7 5 17 5 18.5 8.4 17 11.7 14.5 16.4 12 21 12 21Z"/></svg>
+        </button>
+        <div class="frame" data-open-lightbox="${i}">
+          <img src="${p.url}" loading="lazy">
+          ${pricing.unitPrice > 0 ? `<span class="price-tag">${fmtMoney(pricing.unitPrice)}</span>` : ''}
+        </div>
+        <span class="idx">${folder.name.toUpperCase()} · ${String(i+1).padStart(2,'0')}</span>
+      </div>`;
+    }).join('');
+
+    currentClientPhotos = photos;
+    currentClientFolderName = folder.name;
+
+    grid.querySelectorAll('.fav-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(btn.dataset.photo, folderId, folder.name, btn.dataset.thumb, btn.dataset.filename);
+        btn.classList.toggle('active');
+      });
+    });
+
+    grid.querySelectorAll('[data-open-lightbox]').forEach(frame => {
+      frame.addEventListener('click', () => {
+        openLightbox(parseInt(frame.dataset.openLightbox, 10));
+      });
+    });
+  }
+
+  showScreen('screenClientPhotos');
+}
+
+document.getElementById('backToGallery').addEventListener('click', () => showScreen('screenGallery'));
+
+/* =========================================================
+   FAVORITOS / CARRITO
+========================================================= */
+/* =========================================================
+   PRECIOS Y COMBOS
+   Calcula el total óptimo: prueba de aplicar combos (del más
+   grande al más chico) sobre la cantidad de fotos elegidas,
+   y lo que sobra se cobra a precio individual.
+========================================================= */
+async function loadPricing(){
+  try{
+    const doc = await db.collection('config').doc('pricing').get();
+    if(doc.exists){
+      const data = doc.data();
+      pricing.unitPrice = data.unitPrice || 0;
+      pricing.combos = (data.combos || []).sort((a,b) => a.qty - b.qty); // {qty, free}
+      pricing.fullPackLabel = data.fullPackLabel || '';
+      pricing.fullPackMinQty = data.fullPackMinQty || 0;
+    }
+  }catch(e){ console.error(e); }
+}
+
+/* Calcula el total a pagar para una cantidad de fotos, aplicando
+   el MEJOR escalón "comprás X, llevás Y gratis" que el cliente
+   ya alcanzó con su cantidad actual. El resto de fotos sueltas
+   (las que exceden el escalón) se cobran a precio individual. */
+function calculateCartTotal(qty){
+  if(qty === 0) return { total: 0, breakdown: [], appliedCombo: null };
+
+  // El mejor escalón es el de mayor "qty" que sea alcanzable (qty <= cantidad elegida)
+  const eligible = pricing.combos.filter(c => c.qty <= qty).sort((a,b) => b.qty - a.qty);
+  const bestCombo = eligible[0] || null;
+
+  if(!bestCombo){
+    const total = qty * pricing.unitPrice;
+    return { total, breakdown: [{ type:'unit', qty, price: pricing.unitPrice }], appliedCombo: null };
+  }
+
+  const paidInCombo = bestCombo.qty - bestCombo.free;
+  const extra = qty - bestCombo.qty; // fotos sueltas además del escalón
+  const breakdown = [
+    { type:'combo', qty: bestCombo.qty, free: bestCombo.free, paid: paidInCombo, price: pricing.unitPrice }
+  ];
+  if(extra > 0){
+    breakdown.push({ type:'unit', qty: extra, price: pricing.unitPrice });
+  }
+
+  const total = (paidInCombo + extra) * pricing.unitPrice;
+  return { total, breakdown, appliedCombo: bestCombo };
+}
+
+function fmtMoney(n){
+  return `$${Number(n).toLocaleString('es-AR')}`;
+}
+
+/* =========================================================
+   CARTEL DE PROMO CERCANA
+   Cada vez que el carrito cambia, si el cliente está a 1 o 2
+   fotos de alcanzar el próximo escalón de combo, se lo avisa
+   con un cartel flotante (sin repetirlo para el mismo escalón).
+========================================================= */
+let lastPromoShownForQty = null; // evita repetir el aviso para la misma cantidad de fotos
+
+function checkPromoPopup(){
+  if(pricing.combos.length === 0) return;
+
+  const qty = favorites.length;
+  const sortedCombos = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+
+  // ¿Ya alcanzó algún escalón con esta cantidad exacta? Avisamos que lo logró.
+  const justReached = sortedCombos.find(c => c.qty === qty);
+  if(justReached){
+    showPromoPopup(t('promoReached')
+      .replace('{qty}', justReached.qty)
+      .replace('{free}', justReached.free));
+    lastPromoShownForQty = qty;
+    return;
+  }
+
+  // ¿Está cerca del próximo escalón (1 o 2 fotos por sumar)?
+  const nextCombo = sortedCombos.find(c => c.qty > qty);
+  if(nextCombo){
+    const missing = nextCombo.qty - qty;
+    if(missing <= 2 && lastPromoShownForQty !== qty){
+      showPromoPopup(t('promoClose')
+        .replace('{missing}', missing)
+        .replace('{qty}', nextCombo.qty)
+        .replace('{free}', nextCombo.free));
+      lastPromoShownForQty = qty;
+    }
+  }
+}
+
+function showPromoPopup(html){
+  const popup = document.getElementById('promoPopup');
+  document.getElementById('promoPopupText').innerHTML = html;
+  popup.classList.add('show');
+  clearTimeout(popup._hideTimer);
+  popup._hideTimer = setTimeout(() => popup.classList.remove('show'), 5000);
+}
+
+document.getElementById('promoPopupClose').addEventListener('click', () => {
+  document.getElementById('promoPopup').classList.remove('show');
+});
+
+function renderPricingAdmin(){
+  document.getElementById('priceUnit').value = pricing.unitPrice || '';
+  document.getElementById('fullPackLabel').value = pricing.fullPackLabel || '';
+  document.getElementById('fullPackMinQty').value = pricing.fullPackMinQty || '';
+
+  const list = document.getElementById('combosList');
+  if(pricing.combos.length === 0){
+    list.innerHTML = `<p style="color:var(--grey); font-size:0.85rem;">Todavía no agregaste escalones.</p>`;
+    return;
+  }
+
+  const sorted = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+  list.innerHTML = sorted.map(c => `
+    <div class="combo-row">
+      <div>
+        <strong>Comprás ${c.qty}, llevás ${c.free} gratis</strong>
+        <small>Pagás ${c.qty - c.free} de ${c.qty}${pricing.unitPrice > 0 ? ` (${fmtMoney((c.qty - c.free) * pricing.unitPrice)})` : ''}</small>
+      </div>
+      <button class="icon-btn" data-delcombo="${c.qty}" aria-label="Eliminar escalón">${ICON_TRASH}</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-delcombo]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const qty = parseInt(btn.dataset.delcombo, 10);
+      pricing.combos = pricing.combos.filter(c => c.qty !== qty);
+      await savePricingToFirestore();
+      renderPricingAdmin();
+      showToast("Escalón eliminado.");
+    });
+  });
+}
+
+async function savePricingToFirestore(){
+  await db.collection('config').doc('pricing').set({
+    unitPrice: pricing.unitPrice,
+    combos: pricing.combos,
+    fullPackLabel: pricing.fullPackLabel || '',
+    fullPackMinQty: pricing.fullPackMinQty || 0
+  });
+}
+
+document.getElementById('btnSavePriceUnit').addEventListener('click', async () => {
+  const val = parseFloat(document.getElementById('priceUnit').value);
+  if(isNaN(val) || val < 0){
+    showToast("Ingresá un precio válido.");
+    return;
+  }
+  pricing.unitPrice = val;
+  await savePricingToFirestore();
+  renderPricingAdmin();
+  showToast("Precio individual guardado.");
+});
+
+document.getElementById('btnAddCombo').addEventListener('click', async () => {
+  const qty = parseInt(document.getElementById('newComboQty').value, 10);
+  const free = parseInt(document.getElementById('newComboFree').value, 10);
+
+  if(isNaN(qty) || qty <= 0 || isNaN(free) || free <= 0 || free >= qty){
+    showToast("La cantidad gratis tiene que ser menor a la cantidad comprada.");
+    return;
+  }
+
+  pricing.combos = pricing.combos.filter(c => c.qty !== qty); // reemplaza si ya existía ese escalón
+  pricing.combos.push({ qty, free });
+  await savePricingToFirestore();
+
+  document.getElementById('newComboQty').value = '';
+  document.getElementById('newComboFree').value = '';
+  renderPricingAdmin();
+  showToast("Escalón agregado.");
+});
+
+document.getElementById('btnSaveFullPack').addEventListener('click', async () => {
+  const label = document.getElementById('fullPackLabel').value.trim();
+  const minQty = parseInt(document.getElementById('fullPackMinQty').value, 10);
+  pricing.fullPackLabel = label;
+  pricing.fullPackMinQty = isNaN(minQty) ? 0 : minQty;
+  await savePricingToFirestore();
+  showToast("Cartel de pack completo guardado.");
+});
+
+function toggleFavorite(photoId, folderId, folderName, thumb, fileName){
+  const exists = favorites.some(f => f.photoId === photoId);
+  if(exists){
+    favorites = favorites.filter(f => f.photoId !== photoId);
+  } else {
+    favorites.push({ photoId, folderId, folderName, thumb, fileName: fileName || photoId });
+  }
+  saveClientSession();
+  renderDrawer();
+  checkPromoPopup();
+}
+
+function renderDrawer(){
+  document.getElementById('favBadge').textContent = favorites.length;
+  const list = document.getElementById('drawerList');
+
+  if(favorites.length === 0){
+    list.innerHTML = `<p class="drawer-empty">${t('drawerEmpty')}</p>`;
+  } else {
+    list.innerHTML = favorites.map(f => `
+      <div class="drawer-item">
+        <span class="thumb"><img src="${f.thumb}"></span>
+        <span class="meta">
+          <strong>${f.folderName}</strong>
+          <small>${f.fileName}</small>
+        </span>
+        <button class="remove" data-remove="${f.photoId}" aria-label="Quitar">×</button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.remove;
+        favorites = favorites.filter(f => f.photoId !== id);
+        saveClientSession();
+        renderDrawer();
+        const heart = document.querySelector(`.fav-toggle[data-photo="${id}"]`);
+        if(heart) heart.classList.remove('active');
+      });
+    });
+  }
+
+  renderCartSummary();
+}
+
+function renderCartSummary(){
+  const summary = document.getElementById('cartSummary');
+
+  if(favorites.length === 0 || (pricing.unitPrice <= 0 && pricing.combos.length === 0)){
+    summary.classList.add('hidden');
+  } else {
+    const { total, breakdown } = calculateCartTotal(favorites.length);
+
+    const lines = breakdown.map(b => {
+      if(b.type === 'combo'){
+        return `<div class="cart-summary-row"><span>Combo: comprás ${b.qty}, ${b.free} gratis</span><span>${fmtMoney(b.paid * b.price)}</span></div>`;
+      }
+      return `<div class="cart-summary-row"><span>${b.qty} foto${b.qty>1?'s':''} individual${b.qty>1?'es':''}</span><span>${fmtMoney(b.qty*b.price)}</span></div>`;
+    }).join('');
+
+    // Si existe un escalón más grande que el actual, sugerirlo como incentivo
+    const nextCombo = [...pricing.combos].sort((a,b)=>a.qty-b.qty).find(c => c.qty > favorites.length);
+    const missing = nextCombo ? nextCombo.qty - favorites.length : 0;
+    const hint = nextCombo
+      ? `Sumá ${missing} foto${missing>1?'s':''} más y llevás ${nextCombo.free} gratis (comprando ${nextCombo.qty}).`
+      : '';
+
+    summary.innerHTML = `
+      ${lines}
+      <div class="cart-summary-row total"><span>Total</span><strong>${fmtMoney(total)}</strong></div>
+      ${hint ? `<div class="cart-summary-hint">💡 ${hint}</div>` : ''}
+    `;
+    summary.classList.remove('hidden');
+  }
+
+  renderAllPromosBox();
+}
+
+/* Muestra SIEMPRE el listado completo de promociones disponibles
+   (todos los escalones + el pack completo si existe), marcando
+   cuál ya alcanzó el cliente con su selección actual. */
+function renderAllPromosBox(){
+  const box = document.getElementById('allPromosBox');
+
+  if(pricing.combos.length === 0 && !pricing.fullPackLabel){
+    box.classList.add('hidden');
+    return;
+  }
+
+  const qty = favorites.length;
+  const sorted = [...pricing.combos].sort((a,b) => a.qty - b.qty);
+
+  const chips = sorted.map(c => {
+    const achieved = qty >= c.qty;
+    return `
+      <div class="promo-chip ${achieved ? 'achieved' : ''}">
+        <span>${achieved ? '<span class="check">✓</span> ' : ''}Comprás <strong>${c.qty}</strong>, llevás <strong>${c.free} gratis</strong></span>
+      </div>`;
+  }).join('');
+
+  const fullPackChip = pricing.fullPackLabel
+    ? `<div class="full-pack-chip">📦 ${pricing.fullPackMinQty > 0 ? `<strong>+${pricing.fullPackMinQty}</strong> · ` : ''}${pricing.fullPackLabel}</div>`
+    : '';
+
+  box.innerHTML = `
+    <div class="promos-title">Promociones disponibles</div>
+    ${chips}
+    ${fullPackChip}
+  `;
+  box.classList.remove('hidden');
+}
+
+const drawer = document.getElementById('drawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+document.getElementById('favLauncher').addEventListener('click', () => {
+  drawer.classList.add('open'); drawerOverlay.classList.add('open');
+});
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+function closeDrawer(){ drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
+
+/* =========================================================
+   LIGHTBOX (vista cliente): ver foto grande, navegar con
+   flechas, y marcar/desmarcar favorita desde ahí mismo.
+========================================================= */
+const lightboxOverlay = document.getElementById('lightboxOverlay');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxFolderName = document.getElementById('lightboxFolderName');
+const lightboxFileName = document.getElementById('lightboxFileName');
+const lightboxFavBtn = document.getElementById('lightboxFavBtn');
+const lightboxFavLabel = document.getElementById('lightboxFavLabel');
+
+function openLightbox(index){
+  lightboxIndex = index;
+  renderLightbox();
+  lightboxOverlay.classList.add('open');
+}
+
+function renderLightbox(){
+  const photo = currentClientPhotos[lightboxIndex];
+  if(!photo) return;
+  const displayName = photo.fileName || `foto-${String(lightboxIndex+1).padStart(2,'0')}`;
+
+  lightboxImg.src = photo.url;
+  lightboxFolderName.textContent = currentClientFolderName;
+  lightboxFileName.textContent = `${t('photoOf').replace('{n}', lightboxIndex+1).replace('{total}', currentClientPhotos.length)}`;
+
+  const isFav = favorites.some(f => f.photoId === photo.id);
+  lightboxFavBtn.classList.toggle('active', isFav);
+  lightboxFavLabel.textContent = isFav ? t('favAddedToSelection') : t('favAddToSelection');
+
+  document.getElementById('lightboxPrev').style.visibility = lightboxIndex === 0 ? 'hidden' : 'visible';
+  document.getElementById('lightboxNext').style.visibility = lightboxIndex === currentClientPhotos.length - 1 ? 'hidden' : 'visible';
+}
+
+document.getElementById('lightboxPrev').addEventListener('click', () => {
+  if(lightboxIndex > 0){ lightboxIndex--; renderLightbox(); }
+});
+document.getElementById('lightboxNext').addEventListener('click', () => {
+  if(lightboxIndex < currentClientPhotos.length - 1){ lightboxIndex++; renderLightbox(); }
+});
+document.getElementById('lightboxClose').addEventListener('click', () => {
+  lightboxOverlay.classList.remove('open');
+});
+lightboxOverlay.addEventListener('click', (e) => {
+  if(e.target === lightboxOverlay) lightboxOverlay.classList.remove('open');
+});
+
+lightboxFavBtn.addEventListener('click', () => {
+  const photo = currentClientPhotos[lightboxIndex];
+  if(!photo) return;
+  const displayName = photo.fileName || `foto-${String(lightboxIndex+1).padStart(2,'0')}`;
+  toggleFavorite(photo.id, currentFolderId, currentClientFolderName, photo.url, displayName);
+  renderLightbox();
+  // sincronizar el corazón en la grilla detrás del lightbox
+  const heart = document.querySelector(`.fav-toggle[data-photo="${photo.id}"]`);
+  if(heart) heart.classList.toggle('active');
+});
+
+// Navegación también con teclado (flechas y escape), útil en compu/tablet
+document.addEventListener('keydown', (e) => {
+  if(!lightboxOverlay.classList.contains('open')) return;
+  if(e.key === 'ArrowLeft') document.getElementById('lightboxPrev').click();
+  if(e.key === 'ArrowRight') document.getElementById('lightboxNext').click();
+  if(e.key === 'Escape') lightboxOverlay.classList.remove('open');
+});
+
+document.getElementById('sendWhatsapp').addEventListener('click', async () => {
+  if(favorites.length === 0){
+    showToast(t('toastNoSelection'));
+    return;
+  }
+
+  const byFolder = {};
+  favorites.forEach(f => {
+    if(!byFolder[f.folderName]) byFolder[f.folderName] = [];
+    byFolder[f.folderName].push(f.fileName);
+  });
+
+  const { total, appliedCombo } = calculateCartTotal(favorites.length);
+
+  // Mensaje solo en español — claro y prolijo para el fotógrafo
+  let msg = `📸 *${currentClient.name}* (${currentClient.email})\n\n`;
+
+  Object.entries(byFolder).forEach(([folder, ids]) => {
+    msg += `🗂 *${folder}*\n`;
+    ids.forEach(id => msg += `  • ${id}\n`);
+    msg += `\n`;
+  });
+
+  msg += `*Total: ${favorites.length} foto${favorites.length > 1 ? 's' : ''}*`;
+  if(appliedCombo){
+    msg += ` (combo: ${appliedCombo.qty} fotos, ${appliedCombo.free} gratis)`;
+  }
+  if(total > 0){
+    msg += `\n💰 *Precio estimado: ${fmtMoney(total)}*`;
+  }
+
+  // Abrimos WhatsApp INMEDIATAMENTE (antes de cualquier await)
+  // para que el navegador móvil no lo bloquee como popup no autorizado.
+  window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
+
+  // Guardar el pedido en Firestore en segundo plano (no bloqueante)
+  db.collection('pedidos').add({
+    clientName: currentClient.name,
+    clientEmail: currentClient.email,
+    items: favorites.map(f => ({ photoId: f.photoId, folder: f.folderName, fileName: f.fileName })),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+});
+
+/* =========================================================
+   NAV ADMIN LINK
+========================================================= */
+document.getElementById('navAdminLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  if(isAdmin){
+    showScreen('screenAdmin');
+  } else {
+    showScreen('screenAdminLogin');
+  }
+});
+
+document.getElementById('backToClientFromAdmin').addEventListener('click', () => {
+  showScreen(currentClient ? 'screenGallery' : 'screenClientLogin');
+});
+
+/* =========================================================
+   LOGIN ADMIN
+========================================================= */
+document.getElementById('btnAdminLogin').addEventListener('click', async () => {
+  const pass = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('adminLoginError');
+
+  if(pass !== ADMIN_PASSWORD){
+    errEl.textContent = "Clave incorrecta.";
+    errEl.style.display = "block";
+    return;
+  }
+  errEl.style.display = "none";
+  isAdmin = true;
+  document.getElementById('adminPass').value = '';
+  await loadFoldersForAdmin();
+  await loadClientsForAdmin();
+  await loadPricing();
+  renderPricingAdmin();
+  showScreen('screenAdmin');
+});
+
+/* =========================================================
+   TABS ADMIN
+========================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* =========================================================
+   ADMIN: CREAR ÁLBUM
+========================================================= */
+document.getElementById('btnCreateFolder').addEventListener('click', async () => {
+  const name = document.getElementById('newFolderName').value.trim();
+  const date = document.getElementById('newFolderDate').value;
+  const coverFile = document.getElementById('newFolderCover').files[0];
+
+  if(!name || !date){
+    showToast("Completá el nombre y la fecha del álbum.");
+    return;
+  }
+
+  const folderData = { name, date, createdAt: firebase.firestore.FieldValue.serverTimestamp() };
+
+  if(coverFile){
+    showToast("Creando álbum...");
+    try{
+      folderData.coverUrl = await resizeImageToDataUrl(coverFile, 900);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  await db.collection('folders').add(folderData);
+  document.getElementById('newFolderName').value = '';
+  document.getElementById('newFolderDate').value = '';
+  document.getElementById('newFolderCover').value = '';
+  document.getElementById('coverUploadLabel').textContent = 'Tocá para elegir una imagen';
+  showToast("Álbum creado.");
+  await loadFoldersForAdmin();
+});
+
+document.getElementById('newFolderCover').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  document.getElementById('coverUploadLabel').textContent = file ? file.name : 'Tocá para elegir una imagen';
+});
+
+/* =========================================================
+   ADMIN: LISTAR ÁLBUMES + SELECT DE SUBIDA
+========================================================= */
+async function loadFoldersForAdmin(){
+  const snap = await db.collection('folders').orderBy('date','desc').get();
+  folders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const list = document.getElementById('adminFoldersList');
+  const select = document.getElementById('folderSelectForUpload');
+
+  if(folders.length === 0){
+    list.innerHTML = `<p style="color:var(--grey); font-size:0.88rem;">Todavía no creaste ningún álbum.</p>`;
+    select.innerHTML = `<option value="">No hay álbumes</option>`;
+    return;
+  }
+
+  select.innerHTML = folders.map(f => `<option value="${f.id}">${f.name} — ${fmtDate(f.date)}</option>`).join('');
+
+  list.innerHTML = folders.map(f => `
+    <div class="folder-row">
+      <div class="info" style="display:flex; align-items:center; gap:12px;">
+        <span class="folder-cover-thumb">
+          ${f.coverUrl ? `<img src="${f.coverUrl}">` : ICON_CAMERA}
+        </span>
+        <span>
+          <strong>${f.name}</strong>
+          <small>${fmtDate(f.date)}</small>
+        </span>
+      </div>
+      <div class="actions">
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+          Cambiar portada
+          <input type="file" accept="image/*" data-setcover="${f.id}" style="display:none;">
+        </label>
+        <button class="btn btn-outline btn-sm" data-view="${f.id}">Ver fotos</button>
+        <button class="btn btn-danger btn-sm" data-delfolder="${f.id}">Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => openAdminFolderPhotos(btn.dataset.view));
+  });
+  list.querySelectorAll('[data-delfolder]').forEach(btn => {
+    btn.addEventListener('click', () => deleteFolder(btn.dataset.delfolder));
+  });
+  list.querySelectorAll('[data-setcover]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      showToast("Actualizando portada...");
+      try{
+        const resized = await resizeImageToDataUrl(file, 900);
+        await db.collection('folders').doc(input.dataset.setcover).update({ coverUrl: resized });
+        showToast("Portada actualizada.");
+        await loadFoldersForAdmin();
+      }catch(err){
+        console.error(err);
+        showToast("Hubo un problema cambiando la portada.");
+      }
+    });
+  });
+}
+
+async function deleteFolder(folderId){
+  if(!confirm("¿Eliminar este álbum y todas sus fotos? Esta acción no se puede deshacer.")) return;
+  const photosSnap = await db.collection('folders').doc(folderId).collection('photos').get();
+  const batch = db.batch();
+  photosSnap.docs.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+  await db.collection('folders').doc(folderId).delete();
+  showToast("Álbum eliminado.");
+  await loadFoldersForAdmin();
+  document.getElementById('adminPhotosPanel').classList.add('hidden');
+}
+
+/* =========================================================
+   ADMIN: VER / ELIMINAR FOTOS DE UN ÁLBUM
+========================================================= */
+async function openAdminFolderPhotos(folderId){
+  currentFolderId = folderId;
+  const folder = folders.find(f => f.id === folderId);
+  document.getElementById('adminPhotosTitle').textContent = `${folder.name} — ${fmtDate(folder.date)}`;
+
+  const panel = document.getElementById('adminPhotosPanel');
+  panel.classList.remove('hidden');
+
+  const grid = document.getElementById('adminPhotoGrid');
+  grid.innerHTML = `
+    <div style="grid-column:1/-1; padding:30px; text-align:center; color:var(--grey);">
+      <div style="font-size:1.5rem; margin-bottom:10px;">⏳</div>
+      <div>Cargando fotos... puede tardar unos segundos.</div>
+    </div>`;
+
+  // Scroll inmediato y también con delay por si el DOM tarda en actualizarse
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+
+  try{
+    const snap = await db.collection('folders').doc(folderId).collection('photos').orderBy('createdAt','asc').get();
+    const photos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if(photos.length === 0){
+      grid.innerHTML = `<p style="color:var(--grey); padding:20px;">Este álbum no tiene fotos todavía.</p>`;
+      return;
+    }
+
+    grid.innerHTML = photos.map((p, i) => {
+      const displayName = p.fileName || `foto-${String(i+1).padStart(2,'0')}`;
+      return `
+      <div class="photo-slide">
+        <span class="notch"></span>
+        <div class="photo-admin-actions">
+          <button class="icon-btn" data-delphoto="${p.id}" aria-label="Eliminar foto">${ICON_TRASH}</button>
+        </div>
+        <div class="frame"><img src="${p.url}" loading="lazy"></div>
+        <span class="idx" title="${displayName}">${displayName}</span>
+      </div>`;
+    }).join('');
+
+    grid.querySelectorAll('[data-delphoto]').forEach(btn => {
+      btn.addEventListener('click', () => deletePhoto(folderId, btn.dataset.delphoto));
+    });
+
+    showToast(`${photos.length} foto${photos.length>1?'s':''} cargada${photos.length>1?'s':''}.`);
+
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; padding:20px; color:var(--danger);">
+        ⚠️ Error al cargar las fotos. Revisá la conexión a internet o las reglas de Firestore e intentá de nuevo.
+      </div>`;
+  }
+}
+
+document.getElementById('closeAdminPhotos').addEventListener('click', () => {
+  document.getElementById('adminPhotosPanel').classList.add('hidden');
+});
+
+async function deletePhoto(folderId, photoId){
+  if(!confirm("¿Eliminar esta foto?")) return;
+  await db.collection('folders').doc(folderId).collection('photos').doc(photoId).delete();
+  showToast("Foto eliminada.");
+  await openAdminFolderPhotos(folderId);
+}
+
+/* =========================================================
+   ADMIN: SUBIR FOTOS CON MARCA DE AGUA
+========================================================= */
+document.getElementById('uploadZone').addEventListener('click', (e) => {
+  // el click en el label ya abre el input, no hace falta lógica extra
+});
+
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  const folderId = document.getElementById('folderSelectForUpload').value;
+
+  if(!folderId){
+    showToast("Primero creá o elegí un álbum de destino.");
+    e.target.value = '';
+    return;
+  }
+  if(files.length === 0) return;
+
+  // Mostrar pantalla de revisión antes de subir
+  e.target.value = '';
+  await showUploadReview(files, folderId);
+});
+
+/* =========================================================
+   PANTALLA DE REVISIÓN DE FOTOS ANTES DE SUBIR
+   Muestra miniaturas con el nombre propuesto (basado en EXIF
+   o en el nombre original). El admin puede editar cada nombre
+   antes de confirmar la subida.
+========================================================= */
+async function showUploadReview(files, folderId){
+  const folder = folders.find(f => f.id === folderId);
+
+  // Crear overlay de revisión
+  const overlay = document.createElement('div');
+  overlay.id = 'uploadReviewOverlay';
+  overlay.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:700;
+    display:flex; flex-direction:column; overflow:hidden;
+  `;
+
+  // Procesar archivos: leer EXIF y generar previsualizaciones
+  const items = await Promise.all(files.map(async (file, idx) => {
+    const preview = await readFileAsDataUrl(file);
+    const exifDate = await readExifDate(file);
+    const suggestedName = exifDate
+      ? `FOTO_${exifDate}.jpg`
+      : file.name; // si no hay EXIF, usa el nombre que tiene
+    return { file, preview, suggestedName, idx };
+  }));
+
+  overlay.innerHTML = `
+    <div style="padding:22px 26px 14px; border-bottom:1px solid rgba(201,162,75,0.2); display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+      <div>
+        <div style="font-family:'Fraunces',serif; font-size:1.3rem; color:#E8E3D8;">Revisá los nombres antes de subir</div>
+        <div style="font-size:0.8rem; color:#7A7568; margin-top:4px;">${items.length} foto${items.length>1?'s':''} · Álbum: <strong style="color:#C9A24B;">${folder.name}</strong></div>
+      </div>
+      <button id="cancelUpload" style="color:#7A7568; font-size:1.5rem; padding:4px 10px;">×</button>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:20px 26px;">
+      <div style="font-size:0.8rem; color:#7A7568; margin-bottom:16px;">
+        💡 Cada foto recibe un número correlativo visible en la imagen. El cliente te va a pedir 
+        "la FOTO_003" y vos la encontrás contando desde el principio del álbum.
+      </div>
+      <div id="reviewGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:12px;">
+        ${items.map((item, i) => `
+          <div style="background:#161617; border:1px solid rgba(201,162,75,0.2); padding:8px; border-radius:4px; text-align:center;">
+            <img src="${item.preview}" style="width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:2px; margin-bottom:6px;">
+            <div style="font-size:0.82rem; color:#C9A24B; font-weight:700; font-family:'Inter',sans-serif;">
+              FOTO_${String(i+1).padStart(3,'0')}
+            </div>
+            <div style="font-size:0.68rem; color:#7A7568; margin-top:2px;">(número final puede variar si ya hay fotos)</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div style="padding:16px 26px 22px; border-top:1px solid rgba(201,162,75,0.2); flex-shrink:0; display:flex; gap:12px; align-items:center;">
+      <button id="confirmUpload" style="flex:1; background:#C9A24B; color:#0B0B0C; border:none; padding:14px; font-size:0.82rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px;">
+        ✓ Confirmar y subir ${items.length} foto${items.length>1?'s':''}
+      </button>
+      <div id="uploadStatusMsg" style="font-size:0.78rem; color:#7A7568;"></div>
+    </div>
+    <div id="reviewProgressBar" style="height:3px; background:#C9A24B; width:0%; transition:width 0.2s; position:absolute; bottom:0; left:0;"></div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('cancelUpload').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  document.getElementById('confirmUpload').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmUpload');
+    btn.disabled = true;
+    btn.textContent = 'Subiendo...';
+    const statusMsg = document.getElementById('uploadStatusMsg');
+    const progressBar = document.getElementById('reviewProgressBar');
+
+    // Contar fotos existentes en el álbum para continuar la numeración
+    let existingCount = 0;
+    try{
+      const existingSnap = await db.collection('folders').doc(folderId).collection('photos').get();
+      existingCount = existingSnap.size;
+    }catch(e){ existingCount = 0; }
+
+    let firstUploadedUrl = null;
+
+    for(let i=0; i<items.length; i++){
+      const item = items[i];
+      const photoNumber = existingCount + i + 1; // número correlativo real
+      const displayNumber = String(photoNumber).padStart(3, '0'); // "001", "002"...
+      const fileName = `FOTO_${displayNumber}`; // nombre simple y claro
+
+      statusMsg.textContent = `Subiendo ${i+1} de ${items.length}... (FOTO_${displayNumber})`;
+      progressBar.style.width = `${Math.round((i/items.length)*100)}%`;
+
+      try{
+        const watermarked = await applyWatermarkWithNumber(item.file, photoNumber);
+        await db.collection('folders').doc(folderId).collection('photos').add({
+          url: watermarked,
+          fileName: fileName,
+          photoNumber: photoNumber,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        if(i === 0) firstUploadedUrl = watermarked;
+      }catch(err){
+        console.error(err);
+        statusMsg.style.color = '#d96a5a';
+        statusMsg.textContent = `Error en foto ${i+1}. Continuando...`;
+        await new Promise(r => setTimeout(r, 1000));
+        statusMsg.style.color = '#7A7568';
+      }
+      progressBar.style.width = `${Math.round(((i+1)/items.length)*100)}%`;
+    }
+
+    // Auto-portada si el álbum no tiene una
+    if(folder && !folder.coverUrl && firstUploadedUrl){
+      await db.collection('folders').doc(folderId).update({ coverUrl: firstUploadedUrl }).catch(()=>{});
+    }
+
+    progressBar.style.width = '100%';
+    statusMsg.textContent = '¡Listo!';
+
+    setTimeout(async () => {
+      document.body.removeChild(overlay);
+      showToast(`${items.length} foto${items.length>1?'s':''} subida${items.length>1?'s':''} correctamente.`);
+      await loadFoldersForAdmin();
+      if(currentFolderId === folderId){
+        await openAdminFolderPhotos(folderId);
+      }
+    }, 600);
+  });
+}
+
+/* Lee un archivo y devuelve su data URL (para previsualización) */
+function readFileAsDataUrl(file){
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+/* Extrae la fecha/hora de la foto desde los datos EXIF.
+   Devuelve una string tipo "20260713_143022" o null si no hay EXIF. */
+function readExifDate(file){
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try{
+        const view = new DataView(e.target.result);
+        // Verificar que es JPEG
+        if(view.getUint16(0) !== 0xFFD8){ resolve(null); return; }
+
+        let offset = 2;
+        while(offset < view.byteLength - 2){
+          const marker = view.getUint16(offset);
+          offset += 2;
+          if(marker === 0xFFE1){ // APP1 — acá está el EXIF
+            const exifLength = view.getUint16(offset);
+            const exifData = new DataView(e.target.result, offset + 2, exifLength - 2);
+
+            // Buscar "Exif\0\0"
+            if(String.fromCharCode(...new Uint8Array(e.target.result, offset+2, 6)) !== 'Exif\0\0'){
+              resolve(null); return;
+            }
+
+            const tiffStart = offset + 8;
+            const tiffView = new DataView(e.target.result, tiffStart);
+            const littleEndian = tiffView.getUint16(0) === 0x4949;
+            const ifdOffset = tiffView.getUint32(4, littleEndian);
+            const numEntries = tiffView.getUint16(ifdOffset, littleEndian);
+
+            for(let i=0; i<numEntries; i++){
+              const entryOffset = ifdOffset + 2 + i*12;
+              const tag = tiffView.getUint16(entryOffset, littleEndian);
+              // Tag 0x0132 = DateTime, 0x9003 = DateTimeOriginal (mejor)
+              if(tag === 0x9003 || tag === 0x0132){
+                const valueOffset = tiffView.getUint32(entryOffset + 8, littleEndian);
+                let dateStr = '';
+                for(let j=0; j<19; j++){
+                  const c = tiffView.getUint8(valueOffset + j);
+                  if(c === 0) break;
+                  dateStr += String.fromCharCode(c);
+                }
+                // dateStr = "2026:07:13 14:30:22"
+                const clean = dateStr.replace(/[: ]/g, '').replace(/(\d{8})(\d{6})/, '$1_$2');
+                resolve(clean || null);
+                return;
+              }
+            }
+            resolve(null); return;
+          }
+          const segmentLength = view.getUint16(offset);
+          offset += segmentLength;
+        }
+        resolve(null);
+      }catch(err){
+        resolve(null);
+      }
+    };
+    reader.onerror = () => resolve(null);
+    // Solo leemos los primeros 128KB — suficiente para el EXIF, mucho más rápido
+    reader.readAsArrayBuffer(file.slice(0, 131072));
+  });
+}
+
+
+/* Aplica marca de agua repetida en diagonal usando Canvas,
+   redimensiona para no generar archivos gigantes, y devuelve
+   un data URL (base64) listo para guardar en Firestore. */
+function applyWatermark(file){
+  return applyWatermarkWithNumber(file, null);
+}
+
+/* Aplica marca de agua + número de foto en esquina inferior derecha.
+   El número es grande, claro y fácil de leer para identificar la foto. */
+function applyWatermarkWithNumber(file, photoNumber){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_SIDE = 1400;
+        let { width, height } = img;
+        if(width > height && width > MAX_SIDE){
+          height = Math.round(height * (MAX_SIDE/width));
+          width = MAX_SIDE;
+        } else if(height > MAX_SIDE){
+          width = Math.round(width * (MAX_SIDE/height));
+          height = MAX_SIDE;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Marca de agua diagonal (texto repetido)
+        ctx.save();
+        ctx.fillStyle = "rgba(232, 227, 216, 0.38)";
+        ctx.font = `700 ${Math.max(16, Math.round(width/18))}px Inter, sans-serif`;
+        ctx.textBaseline = "middle";
+        ctx.translate(width/2, height/2);
+        ctx.rotate(-Math.PI/6);
+        const text = WATERMARK_TEXT;
+        const stepX = ctx.measureText(text).width + 130;
+        const stepY = Math.max(120, Math.round(height/3.5));
+        const diag = Math.sqrt(width*width + height*height);
+        for(let y = -diag/2; y < diag/2; y += stepY){
+          for(let x = -diag/2; x < diag/2; x += stepX){
+            ctx.fillText(text, x, y);
+          }
+        }
+        ctx.restore();
+
+        // Número de foto en esquina inferior derecha — grande y legible
+        if(photoNumber !== null){
+          const numStr = String(photoNumber).padStart(3, '0');
+          const fontSize = Math.max(28, Math.round(width / 22));
+          const padding = Math.round(fontSize * 0.6);
+
+          ctx.save();
+          ctx.font = `900 ${fontSize}px Inter, sans-serif`;
+          ctx.textBaseline = 'bottom';
+          ctx.textAlign = 'right';
+
+          const textW = ctx.measureText(numStr).width;
+          const boxW = textW + padding * 2;
+          const boxH = fontSize + padding * 1.4;
+          const bx = width - 8;
+          const by = height - 8;
+
+          // Fondo negro semitransparente para que se lea bien sobre cualquier foto
+          ctx.fillStyle = 'rgba(0,0,0,0.65)';
+          ctx.beginPath();
+          ctx.roundRect(bx - boxW, by - boxH, boxW, boxH, 4);
+          ctx.fill();
+
+          // Número en dorado
+          ctx.fillStyle = '#C9A24B';
+          ctx.fillText(numStr, bx - padding, by - padding * 0.7);
+          ctx.restore();
+        }
+
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* Redimensiona una imagen sin aplicar marca de agua, pensada para
+   fotos de portada de álbum (referencia visual, no para venta). */
+function resizeImageToDataUrl(file, maxSide){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > height && width > maxSide){
+          height = Math.round(height * (maxSide/width));
+          width = maxSide;
+        } else if(height > maxSide){
+          width = Math.round(width * (maxSide/height));
+          height = maxSide;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* =========================================================
+   ADMIN: CLIENTES DEL DÍA
+========================================================= */
+document.getElementById('btnAddClient').addEventListener('click', async () => {
+  const name = document.getElementById('newClientName').value.trim();
+  const phone = document.getElementById('newClientPhone').value.trim().replace(/\D/g,'');
+
+  if(!name || !phone){
+    showToast("Completá nombre y teléfono.");
+    return;
+  }
+
+  await db.collection('clientes').add({
+    name, phone, status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  document.getElementById('newClientName').value = '';
+  document.getElementById('newClientPhone').value = '';
+  showToast("Cliente agregado.");
+  await loadClientsForAdmin();
+});
+
+async function loadClientsForAdmin(){
+  const snap = await db.collection('clientes').orderBy('createdAt','desc').get();
+  const clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const list = document.getElementById('clientsList');
+
+  if(clients.length === 0){
+    list.innerHTML = `<p style="color:var(--grey); font-size:0.88rem;">Todavía no agregaste clientes.</p>`;
+    return;
+  }
+
+  list.innerHTML = clients.map(c => `
+    <div class="client-row">
+      <div class="info">
+        <strong>${c.name}</strong>
+        <small>+${c.phone}</small>
+      </div>
+      <span class="status-pill ${c.status === 'notified' ? 'notified' : 'pending'}">
+        ${c.status === 'notified' ? 'Avisado' : 'Pendiente'}
+      </span>
+      <div class="actions">
+        <button class="btn btn-outline btn-sm" data-notify="${c.id}" data-phone="${c.phone}" data-name="${c.name}">Avisar fotos listas</button>
+        <button class="btn btn-outline btn-sm" data-remind="${c.id}" data-phone="${c.phone}" data-name="${c.name}">Recordatorio</button>
+        <button class="icon-btn" data-delclient="${c.id}" aria-label="Eliminar cliente">${ICON_TRASH}</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-notify]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Aviso que suas fotos de hoje já estão na galeria. Você pode entrar, escolher suas favoritas e me mandar a seleção por este mesmo WhatsApp.\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te aviso que tus fotos de hoy ya están cargadas en la galería. Podés entrar, elegir tus favoritas y mandarme la selección por este mismo WhatsApp.\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+      await db.collection('clientes').doc(btn.dataset.notify).update({ status: 'notified' });
+      await loadClientsForAdmin();
+    });
+  });
+
+  list.querySelectorAll('[data-remind]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const phone = btn.dataset.phone;
+      const name = btn.dataset.name;
+      const msg = isBrazilPhone(phone)
+        ? `Olá ${name}! Sou da Crisjapo Fotografías 📸 Lembrando que suas fotos continuam disponíveis na galeria para você escolher suas favoritas. Qualquer dúvida, me avise!\n\n📷 Entre aqui: ${APP_URL}`
+        : `Hola ${name}! Soy Crisjapo Fotografías 📸 Te recuerdo que tus fotos siguen disponibles en la galería para que elijas tus favoritas. ¡Cualquier duda, avisame!\n\n📷 Entrá aquí: ${APP_URL}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    });
+  });
+
+  list.querySelectorAll('[data-delclient]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm("¿Eliminar este cliente de la lista?")) return;
+      await db.collection('clientes').doc(btn.dataset.delclient).delete();
+      await loadClientsForAdmin();
+    });
+  });
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+(async function init(){
+  applyTranslations();
+  await loadPricing();
+  loadClientSession();
+  if(currentClient){
+    updateNavForClient();
+    loadFoldersForClient();
+    showScreen('screenGallery');
+    document.getElementById('favLauncher').classList.remove('hidden');
+    renderDrawer();
+  } else {
+    showScreen('screenClientLogin');
+  }
+})();
+</script>
+
+</body>
+</html>
